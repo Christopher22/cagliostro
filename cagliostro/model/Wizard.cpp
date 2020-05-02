@@ -12,8 +12,8 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 
-Wizard::Wizard(QObject *parent) : QObject(parent) {
-
+Wizard::Wizard(const QString &title, QObject *parent) : QObject(parent) {
+  this->setObjectName(title);
 }
 
 QVector<Page *> Wizard::pages() noexcept {

@@ -19,7 +19,7 @@ class Wizard : public QObject {
  Q_OBJECT
 
  public:
-  explicit Wizard(QObject *parent = nullptr);
+  explicit Wizard(const QString &title = "cagliostro", QObject *parent = nullptr);
   [[nodiscard]] QVector<Page *> pages() noexcept;
 };
 }
