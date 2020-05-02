@@ -15,6 +15,8 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model::content {
 class Content : public QObject {
+ Q_OBJECT
+
  protected:
   explicit Content(QUrl uri, QObject *parent = nullptr) noexcept: QObject(parent), uri_(std::move(uri)) {}
   QUrl uri_;

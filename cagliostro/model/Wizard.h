@@ -16,6 +16,8 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 class Wizard : public QObject {
+ Q_OBJECT
+
  public:
   explicit Wizard(QObject *parent = nullptr);
   [[nodiscard]] QVector<Page *> pages() noexcept;

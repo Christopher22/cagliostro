@@ -15,6 +15,8 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 class Entity : public QObject {
+ Q_OBJECT
+
  public:
   explicit Entity(const QString &name, int index = 0, QObject *parent = nullptr);
 

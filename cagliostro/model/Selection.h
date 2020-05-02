@@ -17,8 +17,10 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 class Selection : public Question {
+ Q_OBJECT
+
  public:
-  Selection(QString text, const QStringList& choices, const QString &name, int index = 0, QObject *parent = nullptr);
+  Selection(QString text, const QStringList &choices, const QString &name, int index = 0, QObject *parent = nullptr);
   QStringListModel *operator->() noexcept;
 
  private:

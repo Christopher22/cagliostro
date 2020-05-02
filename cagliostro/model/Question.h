@@ -16,6 +16,8 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 class Question : public Entity {
+ Q_OBJECT
+
  public:
   void setText(const QString &text);
   [[nodiscard]] QString text() const noexcept;
