@@ -29,9 +29,11 @@ class Page : public Entity {
   void setTitle(const QString &title) noexcept;
   [[nodiscard]] QString description() const noexcept;
   void setDescription(const QString &description) noexcept;
+  [[nodiscard]] QString nextText() const noexcept;
+  void setNextText(const QString &next_button_text) noexcept;
 
  private:
-  QString title_, description_;
+  QString title_, description_, next_text_;
 };
 }
 

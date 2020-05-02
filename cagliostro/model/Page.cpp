@@ -11,7 +11,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 
-Page::Page(const QString &name, int index, QObject *parent) : Entity(name, index, parent) {}
+Page::Page(const QString &name, int index, QObject *parent) : Entity(name, index, parent), next_text_(tr("Next")) {}
 
 QVector<Question *> Page::questions() noexcept {
   return Entity::get<Question>(this);
@@ -35,6 +35,14 @@ QString Page::description() const noexcept {
 
 void Page::setDescription(const QString &description) noexcept {
   description_ = description;
+}
+
+QString Page::nextText() const noexcept {
+  return next_text_;
+}
+
+void Page::setNextText(const QString &next_button_text) noexcept {
+  next_text_ = next_button_text;
 }
 
 }
