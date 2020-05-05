@@ -7,41 +7,27 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CAGLIOSTRO_CAGLIOSTRO_MODEL_CONTENT_CONTENT_H_
-#define CAGLIOSTRO_CAGLIOSTRO_MODEL_CONTENT_CONTENT_H_
+#ifndef CAGLIOSTRO_CAGLIOSTRO_MODEL_CONTENT_VIDEO_H_
+#define CAGLIOSTRO_CAGLIOSTRO_MODEL_CONTENT_VIDEO_H_
 
-#include <QObject>
-#include <QUrl>
+#include "Content.h"
+
+class QMediaPlayer;
+class QVideoWidget;
 
 namespace cagliostro::model::content {
-class Content : public QObject {
+class Video : public Content {
  Q_OBJECT
-  Q_PROPERTY(Content::Status status READ status NOTIFY statusChanged)
-  Q_PROPERTY(QUrl uri READ uri)
 
  public:
-  enum class Status {
-    Loading,
-    Ready,
-    Failed
-  };
-
-  [[nodiscard]] Status status() const noexcept;
-  [[nodiscard]] QUrl uri() const noexcept;
-
-  virtual bool show() = 0;
-
- signals:
-  void statusChanged(Status new_status);
-
- protected:
-  explicit Content(QUrl uri, QObject *parent = nullptr);
-  void setStatus(Status status) noexcept;
+  explicit Video(QUrl uri, QObject *parent = nullptr) noexcept;
+  void load();
+  void bind(QVideoWidget *output);
+  bool show() override;
 
  private:
-  QUrl uri_;
-  Status status_;
+  QMediaPlayer *media_;
 };
 }
 
-#endif //CAGLIOSTRO_CAGLIOSTRO_MODEL_CONTENT_CONTENT_H_
+#endif //CAGLIOSTRO_CAGLIOSTRO_MODEL_CONTENT_VIDEO_H_

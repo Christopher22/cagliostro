@@ -9,6 +9,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include "model/Wizard.h"
 #include "model/Selection.h"
+#include "model/content/Video.h"
 #include "view/Wizard.h"
 
 #include <QApplication>
@@ -28,7 +29,14 @@ int main(int argc, char *argv[]) {
   page1->setNextText("I swear!");
 
   auto *page2 = new model::Page("Second page", 1, wizard);
+  page2->setDescription("Please provide some details about yourself:");
   new model::Selection("Your gender: ", {"Male", "Female"}, "gender", 0, page2);
+
+  auto *page3 = new model::Page("Third page", 2, wizard);
+  page3->setDescription("Please rate the cuteness of this Quokka:");
+  auto *video = new model::content::Video(QUrl::fromLocalFile("quokka.wmv"), page3);
+  video->load();
+  new model::Selection("Cuteness: ", {"Extreme cute", "Super cute", "Cute"}, "cuteness", 0, page3);
 
   // View the model and run the application
   (new view::Wizard(wizard))->show();

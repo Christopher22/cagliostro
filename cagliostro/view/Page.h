@@ -11,6 +11,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #define CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
 
 #include "../model/Page.h"
+#include "../model/content/Content.h"
 
 #include <QWizardPage>
 
@@ -18,9 +19,13 @@ namespace cagliostro::view {
 class Page : public QWizardPage {
  public:
   explicit Page(model::Page *page, QWidget *parent = nullptr);
+  void initializePage() override;
 
  private:
-  QWidget *createQuestionWidget(model::Question *question) const noexcept;
+  QWidget *createQuestionWidget(model::Question *question) noexcept;
+  QWidget *createContentWidget(model::content::Content *question) noexcept;
+
+  model::Page *page_;
 };
 }
 
