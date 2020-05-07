@@ -8,6 +8,7 @@ You should have received a copy of the GNU Affero General Public License along w
 */
 
 #include "Page.h"
+#include "VideoViewer.h"
 #include "../model/Selection.h"
 #include "../model/content/Video.h"
 
@@ -27,18 +28,18 @@ Page::Page(model::Page *page, QWidget *parent) : QWizardPage(parent), page_(page
   auto *layout = new QVBoxLayout();
   QWidget *content = this->createContentWidget(page->content());
   if (content != nullptr) {
-    layout->addWidget(content);
+	layout->addWidget(content);
   }
 
   // Create the question layout
   auto *question_layout = new QFormLayout();
   for (auto *question: page->questions()) {
-    QWidget *widget = this->createQuestionWidget(question);
-    if (widget != nullptr) {
-      question_layout->addRow(question->text(), widget);
-      // ToDo: Ensure the name is unique and probably even add an * after
-      this->registerField(question->objectName(), widget);
-    }
+	QWidget *widget = this->createQuestionWidget(question);
+	if (widget != nullptr) {
+	  question_layout->addRow(question->text(), widget);
+	  // ToDo: Ensure the name is unique and probably even add an * after
+	  this->registerField(question->objectName(), widget);
+	}
   }
 
   layout->addLayout(question_layout);
@@ -48,7 +49,7 @@ Page::Page(model::Page *page, QWidget *parent) : QWizardPage(parent), page_(page
 QWidget *Page::createQuestionWidget(model::Question *question) noexcept {
   auto *selection = qobject_cast<model::Selection *>(question);
   if (selection == nullptr) {
-    return nullptr;
+	return nullptr;
   }
 
   auto *widget = new QComboBox(this);
@@ -59,23 +60,36 @@ QWidget *Page::createQuestionWidget(model::Question *question) noexcept {
 QWidget *Page::createContentWidget(model::content::Content *content) noexcept {
   auto *video = qobject_cast<model::content::Video *>(content);
   if (video == nullptr) {
-    return nullptr;
+	return nullptr;
   }
 
-  auto *widget = new QVideoWidget(this);
-  widget->setAspectRatioMode(Qt::KeepAspectRatio);
-  video->bind(widget);
+  auto *widget = new VideoViewer(video->size(), this);
+  if (!video->bind(widget->surface())) {
+	widget->deleteLater();
+	return nullptr;
+  }
   return widget;
 }
 
 void Page::initializePage() {
+  // WARNING: This is called only once, not on backward.
   QWizardPage::initializePage();
 
   // Play the video on start
   auto *content = this->page_->content();
   if (content != nullptr) {
-    content->show();
+	content->show();
   }
+}
+
+bool Page::validatePage() {
+  const auto result = QWizardPage::validatePage();
+
+  auto *content = this->page_->content();
+  if (result && content != nullptr) {
+	content->hide();
+  }
+  return result;
 }
 
 }

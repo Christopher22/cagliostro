@@ -34,8 +34,10 @@ int main(int argc, char *argv[]) {
 
   auto *page3 = new model::Page("Third page", 2, wizard);
   page3->setDescription("Please rate the cuteness of this Quokka:");
-  auto *video = new model::content::Video(QUrl::fromLocalFile("quokka.wmv"), page3);
-  video->load();
+  auto *video = model::content::Video::load(QUrl::fromLocalFile("quokka.wmv"), page3);
+  if (video == nullptr) {
+	return 1;
+  }
   new model::Selection("Cuteness: ", {"Extreme cute", "Super cute", "Cute"}, "cuteness", 0, page3);
 
   // View the model and run the application

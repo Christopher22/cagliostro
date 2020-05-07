@@ -11,22 +11,31 @@ You should have received a copy of the GNU Affero General Public License along w
 #define CAGLIOSTRO_CAGLIOSTRO_MODEL_CONTENT_VIDEO_H_
 
 #include "Content.h"
-
-class QMediaPlayer;
-class QVideoWidget;
+#include <QThread>
+#include <QAbstractVideoSurface>
 
 namespace cagliostro::model::content {
+namespace util {
+class VideoDecoder;
+}
+
 class Video : public Content {
  Q_OBJECT
+  Q_PROPERTY(QSize size READ size)
 
  public:
-  explicit Video(QUrl uri, QObject *parent = nullptr) noexcept;
-  void load();
-  void bind(QVideoWidget *output);
+  static Video *load(const QUrl &uri, QObject *parent = nullptr);
+  bool bind(QAbstractVideoSurface *output);
   bool show() override;
+  void hide() override;
+  [[nodiscard]] QSize size() const noexcept;
+
+ protected:
+  explicit Video(util::VideoDecoder *decoder, const QUrl &uri, QObject *parent = nullptr) noexcept;
 
  private:
-  QMediaPlayer *media_;
+  util::VideoDecoder *decoder_;
+  QThread *worker_;
 };
 }
 

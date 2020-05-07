@@ -16,31 +16,19 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::model::content {
 class Content : public QObject {
  Q_OBJECT
-  Q_PROPERTY(Content::Status status READ status NOTIFY statusChanged)
   Q_PROPERTY(QUrl uri READ uri)
 
  public:
-  enum class Status {
-    Loading,
-    Ready,
-    Failed
-  };
-
-  [[nodiscard]] Status status() const noexcept;
   [[nodiscard]] QUrl uri() const noexcept;
 
   virtual bool show() = 0;
-
- signals:
-  void statusChanged(Status new_status);
+  virtual void hide() {};
 
  protected:
   explicit Content(QUrl uri, QObject *parent = nullptr);
-  void setStatus(Status status) noexcept;
 
  private:
   QUrl uri_;
-  Status status_;
 };
 }
 

@@ -11,21 +11,10 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model::content {
 
-Content::Content(QUrl uri, QObject *parent) : QObject(parent), uri_(std::move(uri)), status_(Status::Loading) {}
-
-Content::Status Content::status() const noexcept {
-  return status_;
-}
+Content::Content(QUrl uri, QObject *parent) : QObject(parent), uri_(std::move(uri)) {}
 
 QUrl Content::uri() const noexcept {
   return uri_;
-}
-
-void Content::setStatus(Content::Status status) noexcept {
-  if (status != status_) {
-    status_ = status;
-    emit this->statusChanged(status);
-  }
 }
 
 }

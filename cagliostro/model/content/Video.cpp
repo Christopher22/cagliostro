@@ -8,40 +8,48 @@ You should have received a copy of the GNU Affero General Public License along w
 */
 
 #include "Video.h"
+#include "util/VideoDecoder.h"
 
 #include <QMediaPlayer>
+#include <QVideoWidget>
 
 namespace cagliostro::model::content {
 
-Video::Video(QUrl uri, QObject *parent) noexcept: Content(std::move(uri), parent), media_(new QMediaPlayer(this)) {
-  QObject::connect(media_, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
-    if (this->status() == Status::Loading && status == QMediaPlayer::LoadedMedia) {
-      this->setStatus(Status::Ready);
-    }
-  });
-
-  QObject::connect(media_,
-                   qOverload<QMediaPlayer::Error>(&QMediaPlayer::error),
-                   this,
-                   [this](QMediaPlayer::Error status) {
-                     this->setStatus(Status::Failed);
-                   });
-
+Video *Video::load(const QUrl &uri, QObject *parent) {
+  auto *decoder = util::VideoDecoder::load(uri);
+  if (decoder == nullptr) {
+	return nullptr;
+  }
+  return new Video(decoder, uri, parent);
 }
 
-void Video::bind(QVideoWidget *output) {
-  media_->setVideoOutput(output);
+Video::Video(util::VideoDecoder *decoder, const QUrl &uri, QObject *parent) noexcept: Content(uri, parent),
+																					  decoder_(decoder),
+																					  worker_(new QThread(this)) {
+  assert(decoder != nullptr);
+
+  decoder_->moveToThread(worker_);
+  worker_->start();
+
+  QObject::connect(this, &QObject::destroyed, decoder_, &util::VideoDecoder::deleteLater);
 }
 
-void Video::load() {
-  media_->setMedia(this->uri());
+bool Video::bind(QAbstractVideoSurface *output) {
+  assert(output != nullptr);
+  decoder_->setVideoSurface(output);
+  return true;
 }
 
 bool Video::show() {
-  if (this->status() != Status::Ready) {
-    return false;
-  }
-  media_->play();
-  return true;
+  return decoder_->start();
 }
+
+void Video::hide() {
+  decoder_->stop();
+}
+
+QSize Video::size() const noexcept {
+  return decoder_->size();
+}
+
 }
