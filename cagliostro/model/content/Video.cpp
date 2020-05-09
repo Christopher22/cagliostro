@@ -31,7 +31,7 @@ Video::Video(util::VideoDecoder *decoder, const QUrl &uri, QObject *parent) noex
   decoder_->moveToThread(worker_);
   worker_->start();
 
-  QObject::connect(this, &QObject::destroyed, decoder_, &util::VideoDecoder::deleteLater);
+  QObject::connect(this, &QObject::destroyed, decoder_, &util::VideoDecoder::stop);
 }
 
 bool Video::bind(QAbstractVideoSurface *output) {
