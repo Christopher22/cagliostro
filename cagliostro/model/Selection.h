@@ -18,13 +18,20 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::model {
 class Selection : public Question {
  Q_OBJECT
+  Q_PROPERTY(QString answer READ answer WRITE setAnswer NOTIFY answered);
 
  public:
   Selection(QString text, const QStringList &choices, const QString &name, int index = 0, QObject *parent = nullptr);
   QStringListModel *operator->() noexcept;
 
+  [[nodiscard]] bool isAnswered() const override;
+  bool setAnswer(int answer_index);
+  bool setAnswer(const QString &answer);
+  [[nodiscard]] QString answer() const noexcept;
+
  private:
   QStringListModel *choices_;
+  QPersistentModelIndex answer_;
 };
 }
 

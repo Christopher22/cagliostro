@@ -12,15 +12,53 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::model {
 
 Selection::Selection(QString text, const QStringList &choices, const QString &name, int index, QObject *parent)
-    : Question(std::move(text),
-               name,
-               index,
-               parent),
-      choices_(new QStringListModel(choices, this)) {
+	: Question(std::move(text),
+			   name,
+			   index,
+			   parent),
+	  choices_(new QStringListModel(choices, this)),
+	  answer_(QPersistentModelIndex(QModelIndex())) {
 
+  if (choices.contains("")) {
+	qWarning("An empty choice is not supported");
+  }
 }
 
 QStringListModel *Selection::operator->() noexcept {
   return choices_;
 }
+
+bool Selection::isAnswered() const {
+  return answer_.isValid();
+}
+
+bool Selection::setAnswer(int answer_index) {
+  auto index = choices_->index(answer_index);
+  if (!index.isValid() || index == answer_) {
+	return false;
+  }
+
+  answer_ = QPersistentModelIndex(index);
+  emit this->answered();
+  return true;
+}
+
+bool Selection::setAnswer(const QString &answer) {
+  // An answer can not be empty - it would be an ambiguous invalid answer.
+  if (answer.isEmpty()) {
+	return false;
+  }
+
+  const auto candidates = choices_->match(choices_->index(0, 0), Qt::DisplayRole, answer);
+  if (candidates.size() == 1) {
+	return this->setAnswer(candidates[0].row());
+  } else {
+	return false;
+  }
+}
+
+QString Selection::answer() const noexcept {
+  return this->isAnswered() ? answer_.data().toString() : "";
+}
+
 }

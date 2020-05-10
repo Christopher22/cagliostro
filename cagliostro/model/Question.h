@@ -21,6 +21,15 @@ class Question : public Entity {
  public:
   void setText(const QString &text);
   [[nodiscard]] QString text() const noexcept;
+  [[nodiscard]] QString fullName(bool field = false) const noexcept;
+  [[nodiscard]] virtual bool isAnswered() const = 0;
+
+  inline explicit operator bool() const noexcept {
+	return this->isAnswered();
+  }
+  
+ signals:
+  void answered();
 
  protected:
   Question(QString text, const QString &name, int index = 0, QObject *parent = nullptr);

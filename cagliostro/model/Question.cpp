@@ -14,8 +14,8 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::model {
 
 Question::Question(QString text, const QString &name, int index, QObject *parent) :
-    Entity(name, index, parent),
-    text_(std::move(text)) {
+	Entity(name, index, parent),
+	text_(std::move(text)) {
   this->setObjectName(name);
 }
 
@@ -25,6 +25,11 @@ void Question::setText(const QString &text) {
 
 QString Question::text() const noexcept {
   return text_;
+}
+
+QString Question::fullName(bool field) const noexcept {
+  const auto parent_name = this->parent() != nullptr ? this->parent()->objectName() : "";
+  return QString("%1/%2%3").arg(parent_name, this->objectName(), field ? "*" : "");
 }
 
 }
