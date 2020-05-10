@@ -16,13 +16,14 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QFormLayout>
 #include <QComboBox>
 #include <QVideoWidget>
+#include <QAbstractButton>
 
 namespace cagliostro::view {
 
-Page::Page(model::Page *page, QWidget *parent) : QWizardPage(parent), page_(page) {
+Page::Page(model::Page *page, QWizard *parent) : QWizardPage(parent), page_(page) {
   this->setTitle(page->title());
   this->setSubTitle(page->description());
-  this->setButtonText(QWizard::NextButton, page->nextText());
+  this->setCommitPage(true);
 
   // Create the layout and add the content widget, if provided
   auto *layout = new QVBoxLayout();
@@ -74,6 +75,9 @@ QWidget *Page::createContentWidget(model::content::Content *content) noexcept {
 void Page::initializePage() {
   // WARNING: This is called only once, not on backward.
   QWizardPage::initializePage();
+
+  // Set the corresponding button text
+  this->setButtonText(QWizard::CommitButton, page_->nextText());
 
   // Play the video on start
   auto *content = this->page_->content();

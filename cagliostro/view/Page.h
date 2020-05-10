@@ -18,7 +18,7 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::view {
 class Page : public QWizardPage {
  public:
-  explicit Page(model::Page *page, QWidget *parent = nullptr);
+  explicit Page(model::Page *page, QWizard *parent = nullptr);
   void initializePage() override;
   bool validatePage() override;
 
