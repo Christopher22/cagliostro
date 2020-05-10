@@ -20,21 +20,24 @@ VideoDecoder::VideoDecoder(std::unique_ptr<cv::VideoCapture> player)
 	  buffer_(),
 	  timer_(new QTimer(this)),
 	  surface_(nullptr),
-	  milliseconds_per_frame(16) {
+	  milliseconds_per_frame_(16) {
 
   const double fps = raw_decoder_->get(cv::CAP_PROP_FPS);
   if (fps > 0) {
-	milliseconds_per_frame = 1000 / fps;
+	milliseconds_per_frame_ = 1000 / fps;
   }
 
-  timer_->setInterval(milliseconds_per_frame);
+  timer_->setInterval(milliseconds_per_frame_);
   QObject::connect(timer_, &QTimer::timeout, this, &VideoDecoder::decode);
   QObject::connect(this, &VideoDecoder::done, timer_, &QTimer::stop);
   QObject::connect(this, &VideoDecoder::started, timer_, [&]() {
 	timer_->start();
   });
   QObject::connect(this, &VideoDecoder::stopped, timer_, [&]() {
-	timer_->stop();
+	if (timer_->isActive()) {
+	  timer_->stop();
+	  emit this->done();
+	}
   });
 }
 
@@ -62,8 +65,8 @@ bool VideoDecoder::decode() {
   if (!must_create_buffer) {
 	emit this->frameReady(buffer_);
 	// Prepare the next frame
-	buffer_.setStartTime(buffer_.startTime() + milliseconds_per_frame);
-	buffer_.setEndTime(buffer_.endTime() + milliseconds_per_frame);
+	buffer_.setStartTime(buffer_.startTime() + milliseconds_per_frame_);
+	buffer_.setEndTime(buffer_.endTime() + milliseconds_per_frame_);
 	buffer = cv::Mat(buffer_.height(), buffer_.width(), CV_8UC3, buffer_.bits(), buffer_.bytesPerLine());
   }
 
@@ -83,7 +86,7 @@ bool VideoDecoder::decode() {
 
 	// Set buffer metadata
 	buffer_.setStartTime(0);
-	buffer_.setEndTime(milliseconds_per_frame);
+	buffer_.setEndTime(milliseconds_per_frame_);
   }
 
   return true;

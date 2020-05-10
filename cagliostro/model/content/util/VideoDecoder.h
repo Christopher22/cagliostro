@@ -49,7 +49,7 @@ class VideoDecoder : public QObject {
   QVideoFrame buffer_;
   QTimer *timer_;
   QAbstractVideoSurface *surface_;
-  qint64 milliseconds_per_frame;
+  qint64 milliseconds_per_frame_;
 };
 }
 

@@ -34,6 +34,8 @@ class Video : public Content {
   explicit Video(util::VideoDecoder *decoder, const QUrl &uri, QObject *parent = nullptr) noexcept;
 
  private:
+  void stopWorker();
+
   util::VideoDecoder *decoder_;
   QThread *worker_;
 };
