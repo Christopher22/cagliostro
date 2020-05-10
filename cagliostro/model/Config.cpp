@@ -35,7 +35,17 @@ bool cagliostro::model::Config::parse(QIODevice *data, QDir root_dir) {
 
 void cagliostro::model::Config::parse() {
   assert(xml_.name() == "cagliostro");
+
+  // Parse the participant
+  const auto participant = this->attribute("participant");
+  if (participant.isEmpty()) {
+	emit this->error(Error::ParserError, "Participant is not defined");
+	return;
+  }
+
+  // Create the wizard
   auto *wizard = new Wizard(
+	  participant,
 	  this->attribute("title", "cagliostro")
   );
 

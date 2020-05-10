@@ -12,12 +12,18 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 
-Wizard::Wizard(const QString &title, QObject *parent) : QObject(parent) {
+Wizard::Wizard(QString participant, const QString &title, QObject *parent)
+	: QObject(parent), participant_(std::move(participant)) {
+  assert(!participant_.isEmpty());
   this->setObjectName(title);
 }
 
 QVector<Page *> Wizard::pages() noexcept {
   return Entity::get<Page>(this);
+}
+
+QString Wizard::participant() const noexcept {
+  return participant_;
 }
 
 }

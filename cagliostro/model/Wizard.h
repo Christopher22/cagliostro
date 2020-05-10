@@ -17,10 +17,15 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::model {
 class Wizard : public QObject {
  Q_OBJECT
+  Q_PROPERTY(QString participant READ participant)
 
  public:
-  explicit Wizard(const QString &title = tr("Cagliostro"), QObject *parent = nullptr);
+  explicit Wizard(QString participant, const QString &title = tr("Cagliostro"), QObject *parent = nullptr);
   [[nodiscard]] QVector<Page *> pages() noexcept;
+  [[nodiscard]] QString participant() const noexcept;
+
+ private:
+  QString participant_;
 };
 }
 
