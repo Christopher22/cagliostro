@@ -12,10 +12,15 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 
-Wizard::Wizard(QString participant, const QString &title, QObject *parent)
-	: QObject(parent), participant_(std::move(participant)) {
+Wizard::Wizard(QString participant, QFile *output, const QString &title, QObject *parent)
+	: QObject(parent), participant_(std::move(participant)), output_(output) {
   assert(!participant_.isEmpty());
+
   this->setObjectName(title);
+
+  // Ensure that output lives as long as the text streams
+  output->setParent(this);
+  output_ << "SUBJECT\tQUESTION (" << title << ")\tANSWER\n";
 }
 
 QVector<Page *> Wizard::pages() noexcept {
@@ -24,6 +29,32 @@ QVector<Page *> Wizard::pages() noexcept {
 
 QString Wizard::participant() const noexcept {
   return participant_;
+}
+
+bool Wizard::save(Question *question) {
+  if (question == nullptr || !*question) {
+	return false;
+  }
+
+  // Write answer to disk
+  output_ << participant_ << '\t' << question->fullName() << '\t' << question->answer() << '\n';
+  output_.flush();
+  return output_.status() == QTextStream::Status::Ok;;
+}
+
+Wizard *Wizard::load(QString participant, const QString &output_path, const QString &title, QObject *parent) {
+  if (participant.isEmpty()) {
+	return nullptr;
+  }
+
+  // Try to open the file
+  auto *file = new QFile(output_path);
+  if (file->exists() || !file->open(QIODevice::WriteOnly | QIODevice::Text)) {
+	file->deleteLater();
+	return nullptr;
+  }
+
+  return new Wizard(std::move(participant), file, title, parent);
 }
 
 }

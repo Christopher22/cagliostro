@@ -1,4 +1,4 @@
-<cagliostro title="A Quokka survey" participant="abc">
+<cagliostro title="A Quokka survey" participant="abc" result="result.tsv">
     <page id="start" next_button="I swear!">
         <title>General information for participant</title>
         <description>I solemnly swear that I'm a **Quokka** lover (and have seen the *amazing* Markdown).</description>

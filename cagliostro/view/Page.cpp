@@ -10,13 +10,13 @@ You should have received a copy of the GNU Affero General Public License along w
 #include "Page.h"
 #include "VideoViewer.h"
 #include "Scale.h"
-#include "../model/Selection.h"
 #include "../model/content/Video.h"
 
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QComboBox>
 #include <QAbstractButton>
+#include <QMessageBox>
 
 namespace cagliostro::view {
 
@@ -87,9 +87,17 @@ void Page::initializePage() {
 bool Page::validatePage() {
   const auto result = QWizardPage::validatePage();
 
+  // Stop playing the video
   auto *content = this->page_->content();
   if (result && content != nullptr) {
 	content->hide();
+  }
+
+  // Save questions
+  if (!page_->save()) {
+	QMessageBox::critical(this,
+						  "Saving failed",
+						  "Logging your recent answer(s) failed. Please contact your supervisor.");
   }
   return result;
 }

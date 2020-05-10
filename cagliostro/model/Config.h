@@ -27,7 +27,8 @@ class Config : public QObject {
  public:
   enum class Error {
 	ParserError,
-	ResourceError
+	ResourceError,
+	OutputError
   };
 
   explicit Config(QObject *parent = nullptr);

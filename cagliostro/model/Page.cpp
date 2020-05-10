@@ -8,6 +8,7 @@ You should have received a copy of the GNU Affero General Public License along w
 */
 
 #include "Page.h"
+#include "Wizard.h"
 
 namespace cagliostro::model {
 
@@ -43,6 +44,22 @@ QString Page::nextText() const noexcept {
 
 void Page::setNextText(const QString &next_button_text) noexcept {
   next_text_ = next_button_text;
+}
+
+bool Page::save() {
+  auto *wizard = qobject_cast<Wizard *>(this->parent());
+  if (wizard == nullptr) {
+	return false;
+  }
+
+  for (auto *question: this->questions()) {
+	const auto result = wizard->save(question);
+	if (!result) {
+	  return false;
+	}
+  }
+
+  return true;
 }
 
 }

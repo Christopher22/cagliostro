@@ -36,18 +36,24 @@ bool cagliostro::model::Config::parse(QIODevice *data, QDir root_dir) {
 void cagliostro::model::Config::parse() {
   assert(xml_.name() == "cagliostro");
 
-  // Parse the participant
+  // Parse the participant and the result file
+  const auto result_file = root_.absoluteFilePath(this->attribute("result", "result.tsv"));
   const auto participant = this->attribute("participant");
   if (participant.isEmpty()) {
 	emit this->error(Error::ParserError, "Participant is not defined");
 	return;
   }
 
-  // Create the wizard
-  auto *wizard = new Wizard(
+  // Try to create the wizard
+  auto *wizard = Wizard::load(
 	  participant,
+	  result_file,
 	  this->attribute("title", "cagliostro")
   );
+  if (wizard == nullptr) {
+	emit this->error(Error::OutputError, "Unable to create output file");
+	return;
+  }
 
   this->parse("cagliostro", [&]() {
 	if (xml_.name() == "page") {

@@ -32,6 +32,8 @@ class Page : public Entity {
   [[nodiscard]] QString nextText() const noexcept;
   void setNextText(const QString &next_button_text) noexcept;
 
+  bool save();
+
  private:
   QString title_, description_, next_text_;
 };

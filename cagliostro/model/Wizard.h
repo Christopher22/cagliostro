@@ -11,8 +11,11 @@ You should have received a copy of the GNU Affero General Public License along w
 #define CAGLIOSTRO_CAGLIOSTRO_MODEL_WIZARD_H_
 
 #include "Page.h"
+#include "Question.h"
 
 #include <QObject>
+#include <QFile>
+#include <QTextStream>
 
 namespace cagliostro::model {
 class Wizard : public QObject {
@@ -20,12 +23,21 @@ class Wizard : public QObject {
   Q_PROPERTY(QString participant READ participant)
 
  public:
-  explicit Wizard(QString participant, const QString &title = tr("Cagliostro"), QObject *parent = nullptr);
+  static Wizard *load(QString participant,
+					  const QString &output_path,
+					  const QString &title = tr("Cagliostro"),
+					  QObject *parent = nullptr);
   [[nodiscard]] QVector<Page *> pages() noexcept;
   [[nodiscard]] QString participant() const noexcept;
 
+  bool save(Question *question);
+
+ protected:
+  explicit Wizard(QString participant, QFile *file, const QString &title = tr("Cagliostro"), QObject *parent = nullptr);
+
  private:
   QString participant_;
+  QTextStream output_;
 };
 }
 
