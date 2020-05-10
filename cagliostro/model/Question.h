@@ -17,17 +17,21 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::model {
 class Question : public Entity {
  Q_OBJECT
+  Q_PROPERTY(QString answer READ answer WRITE setAnswer NOTIFY answered);
 
  public:
   void setText(const QString &text);
   [[nodiscard]] QString text() const noexcept;
   [[nodiscard]] QString fullName(bool field = false) const noexcept;
-  [[nodiscard]] virtual bool isAnswered() const = 0;
+
+  [[nodiscard]] virtual bool isAnswered() const noexcept = 0;
+  [[nodiscard]] virtual QString answer() const noexcept = 0;
+  virtual bool setAnswer(const QString &answer) = 0;
 
   inline explicit operator bool() const noexcept {
 	return this->isAnswered();
   }
-  
+
  signals:
   void answered();
 

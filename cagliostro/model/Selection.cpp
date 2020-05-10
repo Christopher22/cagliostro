@@ -28,7 +28,7 @@ QStringListModel *Selection::operator->() noexcept {
   return choices_;
 }
 
-bool Selection::isAnswered() const {
+bool Selection::isAnswered() const noexcept {
   return answer_.isValid();
 }
 
