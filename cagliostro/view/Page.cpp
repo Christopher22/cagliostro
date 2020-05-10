@@ -9,13 +9,13 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include "Page.h"
 #include "VideoViewer.h"
+#include "Scale.h"
 #include "../model/Selection.h"
 #include "../model/content/Video.h"
 
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QComboBox>
-#include <QVideoWidget>
 #include <QAbstractButton>
 
 namespace cagliostro::view {
@@ -38,8 +38,6 @@ Page::Page(model::Page *page, QWizard *parent) : QWizardPage(parent), page_(page
 	QWidget *widget = this->createQuestionWidget(question);
 	if (widget != nullptr) {
 	  question_layout->addRow(question->text(), widget);
-	  // ToDo: Ensure the name is unique and probably even add an * after
-	  this->registerField(question->objectName(), widget);
 	}
   }
 
@@ -53,8 +51,8 @@ QWidget *Page::createQuestionWidget(model::Question *question) noexcept {
 	return nullptr;
   }
 
-  auto *widget = new QComboBox(this);
-  widget->setModel(selection->operator->());
+  auto *widget = new Scale(selection, this);
+  this->registerField(question->fullName(true), widget, "selection", SIGNAL(valueSelected()));
   return widget;
 }
 
