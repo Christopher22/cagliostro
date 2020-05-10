@@ -17,10 +17,13 @@ Wizard::Wizard(model::Wizard *wizard, QWidget *parent) : QWizard(parent) {
   this->setWindowTitle(wizard->objectName());
   this->setTitleFormat(Qt::MarkdownText);
   this->setSubTitleFormat(Qt::MarkdownText);
+  this->setOption(QWizard::NoCancelButton, true);
+  this->setOption(QWizard::HaveHelpButton, false);
+  this->setOption(QWizard::HelpButtonOnRight, false);
 
   // Add the pages of wizard model
   for (auto *page: wizard->pages()) {
-    this->addPage(new Page(page, this));
+	this->addPage(new Page(page, this));
   }
 }
 

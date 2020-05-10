@@ -32,7 +32,7 @@ set(cagliostro_components Widgets Multimedia MultimediaWidgets)
 find_package(Qt5 COMPONENTS ${cagliostro_components} REQUIRED)
 list(TRANSFORM cagliostro_components PREPEND "Qt5::")
 
-add_executable(cagliostro cagliostro/main.cpp cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h)
+add_executable(cagliostro cagliostro/main.cpp cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/model/Config.cpp cagliostro/model/Config.h)
 target_link_libraries(cagliostro ${cagliostro_components} CONAN_PKG::opencv)
 
 IF (WIN32)
