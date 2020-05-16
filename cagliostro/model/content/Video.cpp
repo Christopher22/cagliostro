@@ -29,8 +29,6 @@ Video::Video(util::VideoDecoder *decoder, const QUrl &uri, QObject *parent) noex
   assert(decoder != nullptr);
 
   decoder_->moveToThread(worker_);
-  worker_->start();
-
   QObject::connect(decoder_, &util::VideoDecoder::done, this, &Video::stopWorker);
   QObject::connect(this, &QObject::destroyed, this, [&]() {
 	decoder_->stop();
@@ -45,11 +43,20 @@ bool Video::bind(QAbstractVideoSurface *output) {
 }
 
 bool Video::show() {
+  if (worker_->isRunning()) {
+	return false;
+  }
+
+  worker_->start();
   return decoder_->start();
 }
 
 void Video::hide() {
+  if (!worker_->isRunning()) {
+	return;
+  }
   decoder_->stop();
+  this->stopWorker();
 }
 
 QSize Video::size() const noexcept {
@@ -57,7 +64,7 @@ QSize Video::size() const noexcept {
 }
 
 void Video::stopWorker() {
-  if (!worker_->isFinished()) {
+  if (worker_->isRunning() && !worker_->isFinished()) {
 	worker_->quit();
 	if (!worker_->wait(1000)) {
 	  qWarning("Unable to close the decoder thread");
