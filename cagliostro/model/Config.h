@@ -26,9 +26,9 @@ class Config : public QObject {
 
  public:
   enum class Error {
-	ParserError,
-	ResourceError,
-	OutputError
+    ParserError,
+    ResourceError,
+    OutputError
   };
 
   explicit Config(QObject *parent = nullptr);
@@ -44,7 +44,6 @@ class Config : public QObject {
   Page *parse(Wizard *parent);
   Question *parse(Page *parent);
   bool parse(const char *name, std::function<void()> inner_element_values, bool include_root = true);
-  content::Content *parse(const QString &uri, Page *parent);
 
   QString attribute(const char *name, const char *default_value = nullptr);
 

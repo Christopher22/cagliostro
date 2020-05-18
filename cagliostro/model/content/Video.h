@@ -11,6 +11,8 @@ You should have received a copy of the GNU Affero General Public License along w
 #define CAGLIOSTRO_CAGLIOSTRO_MODEL_CONTENT_VIDEO_H_
 
 #include "Content.h"
+#include "Resource.h"
+
 #include <QThread>
 #include <QAbstractVideoSurface>
 
@@ -24,14 +26,14 @@ class Video : public Content {
   Q_PROPERTY(QSize size READ size)
 
  public:
-  static Video *load(const QUrl &uri, QObject *parent = nullptr);
+  static Video *load(Resource *resource, QObject *parent = nullptr);
   bool bind(QAbstractVideoSurface *output);
   bool show() override;
   void hide() override;
   [[nodiscard]] QSize size() const noexcept;
 
  protected:
-  explicit Video(util::VideoDecoder *decoder, const QUrl &uri, QObject *parent = nullptr) noexcept;
+  explicit Video(util::VideoDecoder *decoder, Resource *resource, QObject *parent = nullptr) noexcept;
 
  private:
   void stopWorker();

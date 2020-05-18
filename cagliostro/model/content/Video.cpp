@@ -15,24 +15,32 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model::content {
 
-Video *Video::load(const QUrl &uri, QObject *parent) {
+Video *Video::load(Resource *resource, QObject *parent) {
+  // Try to load the URL
+  const auto uri = resource->uri();
+  if (!uri.isValid()) {
+    return nullptr;
+  }
+
+  // Try to decode the video
   auto *decoder = util::VideoDecoder::load(uri);
   if (decoder == nullptr) {
-	return nullptr;
+    return nullptr;
   }
-  return new Video(decoder, uri, parent);
+
+  return new Video(decoder, resource, parent);
 }
 
-Video::Video(util::VideoDecoder *decoder, const QUrl &uri, QObject *parent) noexcept: Content(uri, parent),
-																					  decoder_(decoder),
-																					  worker_(new QThread(this)) {
+Video::Video(util::VideoDecoder *decoder, Resource *resource, QObject *parent) noexcept: Content(resource, parent),
+                                                                                         decoder_(decoder),
+                                                                                         worker_(new QThread(this)) {
   assert(decoder != nullptr);
 
   decoder_->moveToThread(worker_);
   QObject::connect(decoder_, &util::VideoDecoder::done, this, &Video::stopWorker);
   QObject::connect(this, &QObject::destroyed, this, [&]() {
-	decoder_->stop();
-	this->stopWorker();
+    decoder_->stop();
+    this->stopWorker();
   });
 }
 
@@ -44,7 +52,7 @@ bool Video::bind(QAbstractVideoSurface *output) {
 
 bool Video::show() {
   if (worker_->isRunning()) {
-	return false;
+    return false;
   }
 
   worker_->start();
@@ -53,10 +61,13 @@ bool Video::show() {
 
 void Video::hide() {
   if (!worker_->isRunning()) {
-	return;
+    return;
   }
   decoder_->stop();
   this->stopWorker();
+
+  // Close the resource
+  Content::hide();
 }
 
 QSize Video::size() const noexcept {
@@ -65,10 +76,10 @@ QSize Video::size() const noexcept {
 
 void Video::stopWorker() {
   if (worker_->isRunning() && !worker_->isFinished()) {
-	worker_->quit();
-	if (!worker_->wait(1000)) {
-	  qWarning("Unable to close the decoder thread");
-	}
+    worker_->quit();
+    if (!worker_->wait(1000)) {
+      qWarning("Unable to close the decoder thread");
+    }
   }
 }
 

@@ -13,22 +13,19 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QObject>
 #include <QUrl>
 
+#include "Resource.h"
+
 namespace cagliostro::model::content {
 class Content : public QObject {
  Q_OBJECT
-  Q_PROPERTY(QUrl uri READ uri)
 
  public:
-  [[nodiscard]] QUrl uri() const noexcept;
-
   virtual bool show() = 0;
-  virtual void hide() {};
+  virtual void hide();
 
  protected:
-  explicit Content(QUrl uri, QObject *parent = nullptr);
-
- private:
-  QUrl uri_;
+  explicit Content(Resource *resource, QObject *parent = nullptr);
+  [[nodiscard]] Resource *resource() const;
 };
 }
 

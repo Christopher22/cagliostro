@@ -11,10 +11,21 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model::content {
 
-Content::Content(QUrl uri, QObject *parent) : QObject(parent), uri_(std::move(uri)) {}
+Content::Content(Resource *resource, QObject *parent) : QObject(parent) {
+  assert(resource != nullptr);
+  assert(resource->parent() == nullptr);
+  resource->setParent(this);
+}
 
-QUrl Content::uri() const noexcept {
-  return uri_;
+void Content::hide() {
+  auto *resource = this->resource();
+  if (resource != nullptr) {
+    resource->close();
+  }
+}
+
+Resource *Content::resource() const {
+  return this->findChild<Resource *>(QString(), Qt::FindDirectChildrenOnly);
 }
 
 }
