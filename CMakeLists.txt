@@ -15,6 +15,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+get_filename_component(CURRENT_CMAKE_PATH ${CMAKE_COMMAND} DIRECTORY)
+LIST(APPEND CMAKE_PROGRAM_PATH "C:\\Program Files\\Python\\Python38\\Scripts" ${CURRENT_CMAKE_PATH})
+
 # Use conan with cmake
 if (NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
     message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
@@ -33,18 +36,18 @@ find_package(Qt5 COMPONENTS ${cagliostro_components} REQUIRED)
 list(TRANSFORM cagliostro_components PREPEND "Qt5::")
 
 if (WIN32)
-    set(custom_flag WIN32 cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h)
+    set(custom_flag WIN32)
+elseif (APPLE)
+    set(custom_flag MACOSX_BUNDLE)
 endif ()
 
 add_executable(cagliostro ${custom_flag} cagliostro/main.cpp cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/model/Config.cpp cagliostro/model/Config.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/model/content/Resource.cpp cagliostro/model/content/Resource.h cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h)
 target_link_libraries(cagliostro ${cagliostro_components} CONAN_PKG::opencv)
 
-IF (WIN32)
-    # On Windows, deploy all required DLLs automatically
-    get_target_property(qmake_executable Qt5::qmake IMPORTED_LOCATION)
-    get_filename_component(qt_bin_dir "${qmake_executable}" DIRECTORY)
+get_target_property(qmake_executable Qt5::qmake IMPORTED_LOCATION)
+get_filename_component(qt_bin_dir "${qmake_executable}" DIRECTORY)
+if (WIN32)
     find_program(win_deploy_executable windeployqt HINTS "${qt_bin_dir}")
-
     add_custom_command(TARGET cagliostro POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E
             env PATH="${qt_bin_dir}" "${win_deploy_executable}"
@@ -52,6 +55,12 @@ IF (WIN32)
             $<$<CONFIG:Debug>:--no-compiler-runtime>
             $<IF:$<CONFIG:Debug>,--debug,--release>
             \"$<TARGET_FILE:cagliostro>\"
-            COMMENT "Deploying Qt..."
+            COMMENT "Deploying Qt for Windows..."
+            )
+elseif (APPLE)
+    find_program(mac_deploy_executable macdeployqt HINTS "${qt_bin_dir}")
+    add_custom_command(TARGET cagliostro POST_BUILD
+            COMMAND "${mac_deploy_executable}" "$<TARGET_FILE_DIR:cagliostro>/../.." -always-overwrite
+            COMMENT "Deploying Qt for macOS..."
             )
 endif ()
