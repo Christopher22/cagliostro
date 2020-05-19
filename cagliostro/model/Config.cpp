@@ -9,6 +9,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include "Config.h"
 #include "content/Video.h"
+#include "content/preprocessors/Header.h"
 
 #include <algorithm>
 #include <random>
@@ -126,8 +127,17 @@ cagliostro::model::Page *cagliostro::model::Config::parse(cagliostro::model::Wiz
         return;
       }
 
+      // Overwrite the header, if specified
+      const QString header_change = this->attribute("header");
+
       // Load the resource and try to parse it as video
-      auto *resource = new content::Resource(xml_.readElementText());
+      auto *resource = new content::Resource(xml_.readElementText(), root_);
+      if (!header_change.isEmpty() && content::Header::create(header_change, resource) == nullptr) {
+        resource->deleteLater();
+        emit this->error(Error::ResourceError, tr("Unable to decode the header of the element with id '%1'.").arg(id));
+      }
+
+      // Try to load the corresponding video
       if (content::Video::load(resource, page) == nullptr) {
         resource->deleteLater();
         emit this->error(Error::ResourceError, tr("Unable to load the content of the element with id '%1'.").arg(id));

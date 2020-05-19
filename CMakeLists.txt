@@ -33,10 +33,10 @@ find_package(Qt5 COMPONENTS ${cagliostro_components} REQUIRED)
 list(TRANSFORM cagliostro_components PREPEND "Qt5::")
 
 if (WIN32)
-    set(custom_flag WIN32)
+    set(custom_flag WIN32 cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h)
 endif ()
 
-add_executable(cagliostro ${custom_flag} cagliostro/main.cpp cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/model/Config.cpp cagliostro/model/Config.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/model/content/Resource.cpp cagliostro/model/content/Resource.h)
+add_executable(cagliostro ${custom_flag} cagliostro/main.cpp cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/model/Config.cpp cagliostro/model/Config.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/model/content/Resource.cpp cagliostro/model/content/Resource.h cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h)
 target_link_libraries(cagliostro ${cagliostro_components} CONAN_PKG::opencv)
 
 IF (WIN32)
