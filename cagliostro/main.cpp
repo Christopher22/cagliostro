@@ -7,10 +7,13 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef BUILD_TESTING
+
 #include "model/Config.h"
 #include "view/Wizard.h"
 
 #include <QApplication>
+#include <QMessageBox>
 
 #include <iostream>
 
@@ -29,6 +32,7 @@ int main(int argc, char *argv[]) {
   // Set some meta data
   QApplication::setOrganizationName("Christopher Gundler");
   QApplication::setApplicationName("cagliostro");
+  QApplication::setQuitOnLastWindowClosed(true);
 
   if (argc != 2) {
 	std::cout << QString("Usage: %1 cagliostro_file").arg(argc == 1 ? argv[0] : "cagliostro").toUtf8().constData()
@@ -39,7 +43,12 @@ int main(int argc, char *argv[]) {
   QScopedPointer parser(new model::Config());
   QObject::connect(parser.get(), &model::Config::done, [&](model::Wizard *wizard) {
 	wizard->setParent(parser.get());
-	(new view::Wizard(wizard))->show();
+	if (wizard->includeQuestions()) {
+	  (new view::Wizard(wizard))->show();
+	} else {
+	  QMessageBox::information(nullptr, wizard->objectName(), wizard->completeMessage());
+	  QApplication::quit();
+	}
   });
   QObject::connect(parser.get(), &model::Config::error, [](model::Config::Error, const QString &error) {
 	std::cerr << "Parsing error: " << error.toUtf8().constData() << std::endl;
@@ -59,3 +68,8 @@ int main(int argc, char *argv[]) {
 	return static_cast<int>(ReturnCode::ParserError);
   }
 }
+
+#else
+#include "Tests.h"
+QTEST_MAIN(Tests)
+#endif

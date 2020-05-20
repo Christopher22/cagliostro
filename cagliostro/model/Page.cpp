@@ -12,7 +12,8 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 
-Page::Page(const QString &name, int index, QObject *parent) : Entity(name, index, parent), next_text_(tr("Next")) {}
+Page::Page(const QString &name, int index, QObject *parent) : Entity(name, index, parent), next_text_(tr("Next")) {
+}
 
 QVector<Question *> Page::questions() noexcept {
   return Entity::get<Question>(this);
@@ -48,18 +49,11 @@ void Page::setNextText(const QString &next_button_text) noexcept {
 
 bool Page::save() {
   auto *wizard = qobject_cast<Wizard *>(this->parent());
-  if (wizard == nullptr) {
-	return false;
+  if (wizard != nullptr && wizard->save(this)) {
+	emit this->saved();
+	return true;
   }
-
-  for (auto *question: this->questions()) {
-	const auto result = wizard->save(question);
-	if (!result) {
-	  return false;
-	}
-  }
-
-  return true;
+  return false;
 }
 
 }

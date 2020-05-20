@@ -25,13 +25,13 @@ class Entity : public QObject {
   [[nodiscard]] bool hasName() const noexcept;
 
   template<typename T>
-  static QVector<T *> get(QObject *parent) noexcept {
-    static_assert(std::is_base_of<Entity, T>::value, "T needs to be a subclass of Entity.");
-    auto children = parent->findChildren<T *>(QString(), Qt::FindDirectChildrenOnly).toVector();
-    std::sort(children.begin(), children.end(), [](const Entity *e1, const Entity *e2) {
-      return e1->index_ < e2->index_;
-    });
-    return children;
+  static QVector<T *> get(const QObject *parent) noexcept {
+	static_assert(std::is_base_of<Entity, T>::value, "T needs to be a subclass of Entity.");
+	auto children = parent->findChildren<T *>(QString(), Qt::FindDirectChildrenOnly).toVector();
+	std::sort(children.begin(), children.end(), [](const Entity *e1, const Entity *e2) {
+	  return e1->index_ < e2->index_;
+	});
+	return children;
   }
 
  private:

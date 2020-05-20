@@ -17,6 +17,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QDir>
 #include <QIODevice>
 #include <QXmlStreamReader>
+
 #include <functional>
 
 namespace cagliostro::model {
@@ -45,7 +46,7 @@ class Config : public QObject {
   Question *parse(Page *parent);
   bool parse(const char *name, std::function<void()> inner_element_values, bool include_root = true);
 
-  QString attribute(const char *name, const char *default_value = nullptr);
+  QString attribute(const char *name, const QString &default_value = "");
 
   QDir root_;
   QXmlStreamReader xml_;

@@ -34,6 +34,9 @@ class Page : public Entity {
 
   bool save();
 
+ signals:
+  void saved();
+
  private:
   QString title_, description_, next_text_;
 };

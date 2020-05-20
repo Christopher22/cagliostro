@@ -12,6 +12,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include "Page.h"
 #include "Question.h"
+#include "Responses.h"
 
 #include <QObject>
 #include <QFile>
@@ -23,21 +24,20 @@ class Wizard : public QObject {
   Q_PROPERTY(QString participant READ participant)
 
  public:
-  static Wizard *load(QString participant,
-					  const QString &output_path,
-					  const QString &title = tr("Cagliostro"),
-					  QObject *parent = nullptr);
-  [[nodiscard]] QVector<Page *> pages() noexcept;
+  explicit Wizard(QString participant,
+				  const QString &title,
+				  QString no_questions_message,
+				  QObject *parent = nullptr);
+  [[nodiscard]] QVector<Page *> pages() const noexcept;
+  [[nodiscard]] Responses *responses() noexcept;
   [[nodiscard]] QString participant() const noexcept;
+  [[nodiscard]] QString completeMessage() const noexcept;
 
-  bool save(Question *question);
-
- protected:
-  explicit Wizard(QString participant, QFile *file, const QString &title = tr("Cagliostro"), QObject *parent = nullptr);
+  bool save(Page *page);
+  [[nodiscard]] bool includeQuestions() const noexcept;
 
  private:
-  QString participant_;
-  QTextStream output_;
+  QString participant_, complete_message_;
 };
 }
 
