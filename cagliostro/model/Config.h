@@ -27,21 +27,20 @@ class Config : public QObject {
 
  public:
   enum class Error {
-    ParserError,
-    ResourceError,
-    OutputError
+	ParserError,
+	ResourceError,
+	OutputError
   };
 
-  explicit Config(QObject *parent = nullptr);
-  bool parse(QIODevice *data, QDir root_dir);
+  explicit Config(QIODevice *data, const QDir &root_dir, QObject *parent = nullptr);
+  void parse();
   explicit operator bool() const noexcept;
 
  signals:
   void done(Wizard *);
-  void error(Error, QString);
+  void error(cagliostro::model::Config::Error, QString);
 
  private:
-  void parse();
   Page *parse(Wizard *parent);
   Question *parse(Page *parent);
   bool parse(const char *name, std::function<void()> inner_element_values, bool include_root = true);

@@ -13,18 +13,10 @@ You should have received a copy of the GNU Affero General Public License along w
 #include "view/Wizard.h"
 
 #include <QApplication>
-#include <QMessageBox>
 
 #include <iostream>
 
 using namespace cagliostro;
-
-enum class ReturnCode : int {
-  Success = 0,
-  MissingArgument = 1,
-  InvalidFile = 2,
-  ParserError = 3
-};
 
 int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
@@ -34,39 +26,9 @@ int main(int argc, char *argv[]) {
   QApplication::setApplicationName("cagliostro");
   QApplication::setQuitOnLastWindowClosed(true);
 
-  if (argc != 2) {
-	std::cout << QString("Usage: %1 cagliostro_file").arg(argc == 1 ? argv[0] : "cagliostro").toUtf8().constData()
-			  << std::endl;
-	return static_cast<int>(ReturnCode::MissingArgument);
-  }
-
-  QScopedPointer parser(new model::Config());
-  QObject::connect(parser.get(), &model::Config::done, [&](model::Wizard *wizard) {
-	wizard->setParent(parser.get());
-	if (wizard->includeQuestions()) {
-	  (new view::Wizard(wizard))->show();
-	} else {
-	  QMessageBox::information(nullptr, wizard->objectName(), wizard->completeMessage());
-	  QApplication::quit();
-	}
-  });
-  QObject::connect(parser.get(), &model::Config::error, [](model::Config::Error, const QString &error) {
-	std::cerr << "Parsing error: " << error.toUtf8().constData() << std::endl;
-  });
-
-  // Get info of the file given as argument
-  const QFileInfo file_info(argv[1]);
-  QFile file(file_info.absoluteFilePath());
-  if (!file.open(QIODevice::ReadOnly)) {
-	return static_cast<int>(ReturnCode::InvalidFile);
-  }
-
-  // Parse the file and run
-  if (parser->parse(&file, file_info.absolutePath())) {
-	return QApplication::exec();
-  } else {
-	return static_cast<int>(ReturnCode::ParserError);
-  }
+  // Run the GUI
+  (new view::Wizard())->show();
+  return QApplication::exec();
 }
 
 #else

@@ -17,7 +17,10 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::view {
 class Wizard : public QWizard {
  public:
-  explicit Wizard(model::Wizard *wizard, QWidget *parent = nullptr);
+  explicit Wizard(QWidget *parent = nullptr);
+
+ private:
+  void createView(model::Wizard *wizard);
 };
 }
 

@@ -16,27 +16,19 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <random>
 #include <chrono>
 
-cagliostro::model::Config::Config(QObject *parent) : QObject(parent) {
+cagliostro::model::Config::Config(QIODevice *data, const QDir &root_dir, QObject *parent)
+	: QObject(parent), xml_(data), root_(root_dir) {
+  qRegisterMetaType<cagliostro::model::Config::Error>("cagliostro::model::Config::Error");
   QObject::connect(this, &Config::error, this, [&](Error, const QString &message) {
 	xml_.raiseError(message);
   });
 }
 
-bool cagliostro::model::Config::parse(QIODevice *data, QDir root_dir) {
-  xml_.setDevice(data);
-  root_ = std::move(root_dir);
-
-  if (xml_.readNextStartElement() && xml_.name() == "cagliostro") {
-	this->parse();
-	return static_cast<bool>(*this);
-  } else {
-	emit this->error(Error::ParserError, "Root element 'cagliostro' not available.");
-  }
-  return false;
-}
-
 void cagliostro::model::Config::parse() {
-  assert(xml_.name() == "cagliostro");
+  if (!xml_.readNextStartElement() || xml_.name() != "cagliostro") {
+	emit this->error(Error::ParserError, "Root element 'cagliostro' not available.");
+	return;
+  }
 
   // Parse the participant and the result file
   const auto result_file = root_.absoluteFilePath(this->attribute("result", "result.tsv"));
@@ -97,6 +89,8 @@ void cagliostro::model::Config::parse() {
   }, false);  // Parse all the pages
 
   if (*this) {
+	// This allows to pull the thread to the next thread
+	wizard->moveToThread(nullptr);
 	emit this->done(wizard);
   } else {
 	wizard->deleteLater();

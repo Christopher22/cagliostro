@@ -9,17 +9,37 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include "Wizard.h"
 #include "Page.h"
+#include "ConfigPage.h"
+
+#include <QMessageBox>
+#include <QAbstractButton>
 
 namespace cagliostro::view {
 
-Wizard::Wizard(model::Wizard *wizard, QWidget *parent) : QWizard(parent) {
+Wizard::Wizard(QWidget *parent) : QWizard(parent) {
   // Set the general config
-  this->setWindowTitle(wizard->objectName());
+  this->setWindowTitle(tr("Cagliostro"));
   this->setTitleFormat(Qt::MarkdownText);
   this->setSubTitleFormat(Qt::MarkdownText);
   this->setOption(QWizard::NoCancelButton, true);
   this->setOption(QWizard::HaveHelpButton, false);
   this->setOption(QWizard::HelpButtonOnRight, false);
+  this->setOption(QWizard::HaveCustomButton1, true);
+
+  auto *config = new ConfigPage(this);
+  QObject::connect(config, &ConfigPage::modelLoaded, this, &Wizard::createView);
+  this->addPage(config);
+}
+
+void Wizard::createView(model::Wizard *wizard) {
+  this->setWindowTitle(wizard->objectName());
+
+  if (!wizard->includeQuestions()) {
+	this->setButtonText(QWizard::FinishButton, tr("Exit"));
+	this->button(QWizard::FinishButton)->setEnabled(true);
+	QMessageBox::information(this, wizard->objectName(), wizard->completeMessage());
+	return;
+  }
 
   // Add the pages of wizard model
   for (auto *page: wizard->pages()) {

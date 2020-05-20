@@ -40,7 +40,7 @@ find_package(Qt5 COMPONENTS ${cagliostro_components} REQUIRED)
 list(TRANSFORM cagliostro_components PREPEND "Qt5::")
 
 set(src_model cagliostro/main.cpp cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/model/Config.cpp cagliostro/model/Config.h cagliostro/model/content/Resource.cpp cagliostro/model/content/Resource.h cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h cagliostro/model/Responses.cpp cagliostro/model/Responses.h)
-set(src_view cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h)
+set(src_view cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/view/ConfigPage.cpp cagliostro/view/ConfigPage.h cagliostro/view/util/FileSelector.cpp cagliostro/view/util/FileSelector.h)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     MESSAGE(STATUS "Build tests")
