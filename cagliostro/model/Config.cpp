@@ -8,7 +8,6 @@ You should have received a copy of the GNU Affero General Public License along w
 */
 
 #include "Config.h"
-#include "Responses.h"
 #include "content/Video.h"
 #include "content/preprocessors/Header.h"
 
@@ -26,28 +25,28 @@ cagliostro::model::Config::Config(QIODevice *data, const QDir &root_dir, QObject
 
 void cagliostro::model::Config::parse() {
   if (!xml_.readNextStartElement() || xml_.name() != "cagliostro") {
-    emit this->error(Error::ParserError, "Root element 'cagliostro' not available.");
+    emit this->error(Error::ParserError, tr("Root element 'cagliostro' not available."));
     return;
   }
 
   // Parse the participant and the result file
-  const auto result_file = root_.absoluteFilePath(this->attribute("result", "result.tsv"));
+  const auto result_file = root_.absoluteFilePath(this->attribute("result", QString("result.tsv")));
   const auto participant = this->attribute("participant");
   if (participant.isEmpty()) {
-    emit this->error(Error::ParserError, "Participant is not defined");
+    emit this->error(Error::ParserError, tr("Participant is not defined"));
     return;
   }
 
   // Try to create the wizard
   auto *wizard = new Wizard(
       participant,
-      this->attribute("title", "cagliostro"),
+      this->attribute("title", QString("cagliostro")),
       this->attribute("complete", tr("You answered all questions already. Thank you for your participation!"))
   );
 
   auto *responses = Responses::load(result_file, wizard->participant(), wizard);
   if (responses == nullptr) {
-    emit this->error(Error::OutputError, "Unable to create output file");
+    emit this->error(Error::OutputError, tr("Unable to create output file"));
     wizard->deleteLater();
     return;
   }
@@ -65,7 +64,7 @@ void cagliostro::model::Config::parse() {
           }
         } else {
           emit this->error(Error::ParserError,
-                           QString("Found unexpected element '%1' in 'randomized_pages'.").arg(xml_.name()));
+                           tr("Found unexpected element '%1' in 'randomized_pages'.").arg(xml_.name()));
         }
       }, false);
 
@@ -84,7 +83,7 @@ void cagliostro::model::Config::parse() {
         pages[i]->setIndex(page_ids[i]);
       }
     } else {
-      emit this->error(Error::ParserError, QString("Found unexpected element '%1'.").arg(xml_.name()));
+      emit this->error(Error::ParserError, tr("Found unexpected element '%1'.").arg(xml_.name()));
     }
   }, false);  // Parse all the pages
 
@@ -103,12 +102,12 @@ cagliostro::model::Page *cagliostro::model::Config::parse(cagliostro::model::Wiz
   // ToDo: Check id is unique
   auto id = attribute("id");
   if (id.isEmpty()) {
-    this->error(Error::ParserError, QString("Found page without id"));
+    this->error(Error::ParserError, tr("Found page without id"));
     return nullptr;
   }
 
   auto page = new Page(id, parent->pages().size(), nullptr);
-  page->setNextText(this->attribute("next_button", "Next"));
+  page->setNextText(this->attribute("next_button", tr("Next")));
 
   // Check if the page should be added. If not, parse the page nevertheless, but do not translate it into the model
   const auto *responses = parent->responses();
@@ -124,11 +123,10 @@ cagliostro::model::Page *cagliostro::model::Config::parse(cagliostro::model::Wiz
     } else if (xml_.name() == "description") {
       page->setDescription(xml_.readElementText());
     } else if (xml_.name() == "content") {
-      const auto obligatory_raw = attribute("obligatory", "false").toLower();
-      const auto obligatory = obligatory_raw == "true" || obligatory_raw == "1";
+      const auto obligatory = attribute("obligatory", false);
 
       // Parse content of page
-      if (attribute("type", "video") != "video") {
+      if (attribute("type", QString("video")) != "video") {
         emit this->error(Error::ParserError, tr("Currently, only content 'video' is supported."));
         return;
       } else if (page->content() != nullptr) {
@@ -151,10 +149,10 @@ cagliostro::model::Page *cagliostro::model::Config::parse(cagliostro::model::Wiz
       if (video == nullptr) {
         resource->deleteLater();
         emit this->error(Error::ResourceError, tr("Unable to load the content of the element with id '%1'.").arg(id));
+      } else {
+        // Mark this element in a way that the user can not skip it
+        video->setObligatory(obligatory);
       }
-
-      // Mark this element in a way that the user can not skip it
-      video->setObligatory(obligatory);
     } else if (xml_.name() == "question") {
       this->parse(page);
     } else {
@@ -212,15 +210,6 @@ cagliostro::model::Question *cagliostro::model::Config::parse(cagliostro::model:
 
   assert(parsed);
   return question;
-}
-
-QString cagliostro::model::Config::attribute(const char *name, const QString &default_value) {
-  QStringRef attribute_value = xml_.attributes().value(name);
-  if (attribute_value.isEmpty() && !default_value.isEmpty()) {
-    return default_value;
-  } else {
-    return attribute_value.toString();
-  }
 }
 
 cagliostro::model::Config::operator bool() const noexcept {

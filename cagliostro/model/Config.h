@@ -27,9 +27,9 @@ class Config : public QObject {
 
  public:
   enum class Error {
-	ParserError,
-	ResourceError,
-	OutputError
+    ParserError,
+    ResourceError,
+    OutputError
   };
 
   explicit Config(QIODevice *data, const QDir &root_dir, QObject *parent = nullptr);
@@ -45,7 +45,22 @@ class Config : public QObject {
   Question *parse(Page *parent);
   bool parse(const char *name, std::function<void()> inner_element_values, bool include_root = true);
 
-  QString attribute(const char *name, const QString &default_value = "");
+  template<typename T = QString>
+  [[nodiscard]] T attribute(const char *name, T &&default_value = {}) const noexcept {
+    static_assert(false, "This type is not supported");
+  }
+
+  template<>
+  [[nodiscard]] inline QString attribute(const char *name, QString &&default_value) const noexcept {
+    const QStringRef attribute_value = xml_.attributes().value(name);
+    return attribute_value.isEmpty() && !default_value.isEmpty() ? default_value : attribute_value.toString();
+  }
+
+  template<>
+  [[nodiscard]] inline bool attribute(const char *name, bool &&default_value) const noexcept {
+    const auto raw_value = this->attribute<QString>(name, default_value ? "true" : "false").toLower();
+    return raw_value == "true" || raw_value == "1";
+  }
 
   QDir root_;
   QXmlStreamReader xml_;
