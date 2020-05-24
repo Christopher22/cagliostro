@@ -26,13 +26,20 @@ class VideoDecoder : public QObject {
   Q_PROPERTY(QSize size READ size)
 
  public:
+  enum class Status {
+    Stopped,
+    Running,
+    Closed
+  };
+
   static VideoDecoder *load(const QUrl &uri);
   bool start();
-  bool stop();
+  bool stop(bool should_close);
 
   [[nodiscard]] inline QAbstractVideoSurface *videoSurface() const { return surface_; }
   void setVideoSurface(QAbstractVideoSurface *surface);
   [[nodiscard]] QSize size() const noexcept;
+  [[nodiscard]] Status status() const noexcept;
 
  signals:
   void started();
@@ -43,6 +50,7 @@ class VideoDecoder : public QObject {
  protected:
   explicit VideoDecoder(std::unique_ptr<cv::VideoCapture> player);
   bool decode();
+  void close();
 
  private:
   std::unique_ptr<cv::VideoCapture> raw_decoder_;

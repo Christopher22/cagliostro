@@ -52,7 +52,7 @@ void Resource::close() noexcept {
 }
 
 bool Resource::update(QUrl uri) {
-  if (status_ != Status::Uninitialized && status_ != Status::Opening) {
+  if (status_ != Status::Uninitialized && status_ != Status::Opening && status_ != Status::Closing) {
     return false;
   }
   uri_ = std::move(uri);
