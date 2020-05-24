@@ -38,6 +38,9 @@ Video::Video(util::VideoDecoder *decoder, Resource *resource, QObject *parent) n
 
   decoder_->moveToThread(worker_);
   QObject::connect(decoder_, &util::VideoDecoder::done, this, &Video::stopWorker);
+  QObject::connect(decoder_, &util::VideoDecoder::done, this, [this]() {
+    this->setFinished();
+  });
   QObject::connect(this, &QObject::destroyed, this, [&]() {
     decoder_->stop();
     this->stopWorker();

@@ -18,14 +18,28 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::model::content {
 class Content : public QObject {
  Q_OBJECT
+  Q_PROPERTY(bool isObligatory READ isObligatory WRITE setObligatory NOTIFY obligatoryChanged);
+  Q_PROPERTY(bool isFinished READ isFinished WRITE setFinished NOTIFY finished);
 
  public:
   virtual bool show() = 0;
   virtual void hide();
 
+  [[nodiscard]] bool isObligatory() const noexcept;
+  [[nodiscard]] bool isFinished() const noexcept;
+  void setObligatory(bool is_obligatory);
+
+ signals:
+  void finished();
+  void obligatoryChanged();
+
  protected:
   explicit Content(Resource *resource, QObject *parent = nullptr);
   [[nodiscard]] Resource *resource() const;
+  void setFinished(bool finished = true);
+
+ private:
+  bool obligatory_, finished_;
 };
 }
 

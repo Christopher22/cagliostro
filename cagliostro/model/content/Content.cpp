@@ -11,7 +11,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model::content {
 
-Content::Content(Resource *resource, QObject *parent) : QObject(parent) {
+Content::Content(Resource *resource, QObject *parent) : QObject(parent), obligatory_(false), finished_(false) {
   assert(resource != nullptr);
   assert(resource->parent() == nullptr);
   resource->setParent(this);
@@ -26,6 +26,28 @@ void Content::hide() {
 
 Resource *Content::resource() const {
   return this->findChild<Resource *>(QString(), Qt::FindDirectChildrenOnly);
+}
+
+void Content::setFinished(bool finished) {
+  if (finished_ == finished) {
+    return;
+  }
+  finished_ = finished;
+  if (finished_) {
+    emit this->finished();
+  }
+}
+
+bool Content::isObligatory() const noexcept {
+  return obligatory_;
+}
+
+bool Content::isFinished() const noexcept {
+  return finished_;
+}
+
+void Content::setObligatory(bool is_obligatory) {
+  obligatory_ = is_obligatory;
 }
 
 }

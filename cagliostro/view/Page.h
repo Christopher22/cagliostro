@@ -21,6 +21,7 @@ class Page : public QWizardPage {
   explicit Page(model::Page *page, QWizard *parent = nullptr);
   void initializePage() override;
   bool validatePage() override;
+  [[nodiscard]] bool isComplete() const override;
 
  private:
   QWidget *createQuestionWidget(model::Question *question) noexcept;

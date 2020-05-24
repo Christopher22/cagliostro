@@ -29,16 +29,16 @@ Page::Page(model::Page *page, QWizard *parent) : QWizardPage(parent), page_(page
   auto *layout = new QVBoxLayout();
   QWidget *content = this->createContentWidget(page->content());
   if (content != nullptr) {
-	layout->addWidget(content);
+    layout->addWidget(content);
   }
 
   // Create the question layout
   auto *question_layout = new QFormLayout();
   for (auto *question: page->questions()) {
-	QWidget *widget = this->createQuestionWidget(question);
-	if (widget != nullptr) {
-	  question_layout->addRow(question->text(), widget);
-	}
+    QWidget *widget = this->createQuestionWidget(question);
+    if (widget != nullptr) {
+      question_layout->addRow(question->text(), widget);
+    }
   }
 
   layout->addLayout(question_layout);
@@ -48,7 +48,7 @@ Page::Page(model::Page *page, QWizard *parent) : QWizardPage(parent), page_(page
 QWidget *Page::createQuestionWidget(model::Question *question) noexcept {
   auto *selection = qobject_cast<model::Selection *>(question);
   if (selection == nullptr) {
-	return nullptr;
+    return nullptr;
   }
 
   auto *widget = new Scale(selection, this);
@@ -59,14 +59,17 @@ QWidget *Page::createQuestionWidget(model::Question *question) noexcept {
 QWidget *Page::createContentWidget(model::content::Content *content) noexcept {
   auto *video = qobject_cast<model::content::Video *>(content);
   if (video == nullptr) {
-	return nullptr;
+    return nullptr;
   }
 
   auto *widget = new VideoViewer(video->size(), this);
   if (!video->bind(widget->surface())) {
-	widget->deleteLater();
-	return nullptr;
+    widget->deleteLater();
+    return nullptr;
   }
+
+  // Inform the widget once the content was completely played
+  QObject::connect(content, &model::content::Content::finished, this, &Page::completeChanged);
   return widget;
 }
 
@@ -80,26 +83,34 @@ void Page::initializePage() {
   // Play the video on start
   auto *content = this->page_->content();
   if (content != nullptr) {
-	content->show();
+    content->show();
   }
 }
 
 bool Page::validatePage() {
-  const auto result = QWizardPage::validatePage();
+  if (!QWizardPage::validatePage()) {
+    return false;
+  }
 
   // Stop playing the video
-  auto *content = this->page_->content();
-  if (result && content != nullptr) {
-	content->hide();
+  auto *content = page_->content();
+  if (content != nullptr) {
+    content->hide();
   }
 
   // Save questions
   if (!page_->save()) {
-	QMessageBox::critical(this,
-						  "Saving failed",
-						  "Logging your recent answer(s) failed. Please contact your supervisor.");
+    QMessageBox::critical(this,
+                          "Saving failed",
+                          "Logging your recent answer(s) failed. Please contact your supervisor.");
   }
-  return result;
+
+  return true;
+}
+
+bool Page::isComplete() const {
+  const auto *content = page_->content();
+  return QWizardPage::isComplete() && (content == nullptr || !content->isObligatory() || content->isFinished());
 }
 
 }

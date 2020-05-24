@@ -16,7 +16,7 @@
     <randomized_pages>
         <page id="video1">
             <description>Please rate the cuteness of this Quokka:</description>
-            <content type="video">quokka1.mp4</content>
+            <content type="video" obligatory="true">quokka1.mp4</content>
             <question id="cuteness1">
                 <description>Cuteness</description>
                 <choices>
