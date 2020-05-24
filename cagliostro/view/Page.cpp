@@ -27,6 +27,8 @@ Page::Page(model::Page *page, QWizard *parent) : QWizardPage(parent), page_(page
 
   // Create the layout and add the content widget, if provided
   auto *layout = new QVBoxLayout();
+  layout->setAlignment(Qt::AlignCenter);
+
   QWidget *content = this->createContentWidget(page->content());
   if (content != nullptr) {
     layout->addWidget(content);
