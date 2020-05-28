@@ -15,6 +15,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+option(BUILD_CRYPTO_HELPER "Build the crypto helper beside the main executable" ON)
+
 # Use conan with cmake
 if (NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
     message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
@@ -24,7 +26,7 @@ include(${CMAKE_BINARY_DIR}/conan.cmake)
 conan_check(REQUIRED)
 
 # Specify the dependencies
-set(cagliostro_dependencies opencv/4.1.1@conan/stable)
+set(cagliostro_dependencies opencv/4.1.1@conan/stable cryptopp/8.2.0@bincrafters/stable)
 set(cagliostro_options opencv:ffmpeg=False opencv:protobuf=False opencv:freetype=False opencv:harfbuzz=False opencv:eigen=False opencv:glog=False opencv:gflags=False opencv:quirc=False)
 conan_cmake_run(REQUIRES ${cagliostro_dependencies} OPTIONS ${cagliostro_options} BASIC_SETUP CMAKE_TARGETS BUILD missing)
 
@@ -36,7 +38,7 @@ endif ()
 find_package(Qt5 COMPONENTS ${cagliostro_components} REQUIRED)
 list(TRANSFORM cagliostro_components PREPEND "Qt5::")
 
-set(src_model cagliostro/main.cpp cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/model/Config.cpp cagliostro/model/Config.h cagliostro/model/content/Resource.cpp cagliostro/model/content/Resource.h cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h cagliostro/model/Responses.cpp cagliostro/model/Responses.h cagliostro/model/content/postprocessors/Delete.cpp cagliostro/model/content/postprocessors/Delete.h)
+set(src_model cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/model/Config.cpp cagliostro/model/Config.h cagliostro/model/content/Resource.cpp cagliostro/model/content/Resource.h cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h cagliostro/model/Responses.cpp cagliostro/model/Responses.h cagliostro/model/content/postprocessors/Delete.cpp cagliostro/model/content/postprocessors/Delete.h cagliostro/model/Source.cpp cagliostro/model/Source.h)
 set(src_view cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/view/ConfigPage.cpp cagliostro/view/ConfigPage.h cagliostro/view/util/FileSelector.cpp cagliostro/view/util/FileSelector.h)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
@@ -51,10 +53,17 @@ else ()
     elseif (APPLE)
         set(custom_flag MACOSX_BUNDLE)
     endif ()
-    add_executable(cagliostro ${custom_flag} ${src_model} ${src_view})
+    add_executable(cagliostro ${custom_flag} cagliostro/main.cpp ${src_model} ${src_view})
 endif ()
 
-target_link_libraries(cagliostro ${cagliostro_components} CONAN_PKG::opencv)
+# Build the crypto helper optional
+if (BUILD_CRYPTO_HELPER)
+    add_executable(cagliostro_crypto cagliostro/main_crypto.cpp ${src_model})
+    target_link_libraries(cagliostro_crypto ${cagliostro_components} CONAN_PKG::opencv CONAN_PKG::cryptopp)
+    # We can rely on the deployment of the main executeable
+endif ()
+
+target_link_libraries(cagliostro ${cagliostro_components} CONAN_PKG::opencv CONAN_PKG::cryptopp)
 
 get_target_property(qmake_executable Qt5::qmake IMPORTED_LOCATION)
 get_filename_component(qt_bin_dir "${qmake_executable}" DIRECTORY)
