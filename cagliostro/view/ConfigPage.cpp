@@ -19,7 +19,8 @@ ConfigPage::ConfigPage(QWizard *parent)
 	: QWizardPage(parent),
 	  worker_(new QThread(this)),
 	  model_(nullptr),
-	  file_selector_(new util::FileSelector(tr("Please select the survey"), "", false, "", this)) {
+	  file_selector_(new util::FileSelector(tr("Please select the survey"), "", false, "", this)),
+	  password_(new QLineEdit(this)) {
 
   this->setTitle(tr("Please specify your input"));
   this->setSubTitle(
@@ -34,8 +35,12 @@ ConfigPage::ConfigPage(QWizard *parent)
 	}
   });
 
+  // Make the input suitable for passwords
+  password_->setEchoMode(QLineEdit::Password);
+
   auto *layout = new QFormLayout();
   layout->addRow(tr("File"), file_selector_);
+  layout->addRow(tr("Password"), password_);
   this->setLayout(layout);
 }
 
@@ -87,17 +92,21 @@ void ConfigPage::stopWorker() {
 bool ConfigPage::startWorker() {
   // Get info of the file given as argument
   const QFileInfo file_info(file_selector_->path());
-  auto *file = new QFile(file_info.absoluteFilePath());
-  if (!file->open(QIODevice::ReadOnly)) {
-	file->deleteLater();
+  if (!file_info.exists()) {
 	return false;
   }
 
+  // Disable file selection
   file_selector_->setEnabled(false);
   this->wizard()->button(QWizard::CustomButton1)->setEnabled(false);
 
-  auto *config = new model::Config(file, file_info.absolutePath(), nullptr);
-  file->setParent(config);
+  // Create both source and config - config will take ownership
+  auto *source = new model::Source(file_info.absoluteFilePath());
+  if (!password_->text().isEmpty()) {
+	source->setPassword(password_->text());
+  }
+  auto *config = new model::Config(source, file_info.absolutePath(), nullptr);
+
   config->moveToThread(worker_);
   QObject::connect(worker_, &QThread::destroyed, config, &model::Config::deleteLater);
   QObject::connect(config, &model::Config::done, this, &ConfigPage::setModel);

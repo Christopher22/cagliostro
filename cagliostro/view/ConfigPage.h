@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include <QWizardPage>
 #include <QThread>
+#include <QLineEdit>
 
 namespace cagliostro::view {
 class ConfigPage : public QWizardPage {
@@ -39,6 +40,7 @@ class ConfigPage : public QWizardPage {
   QThread *worker_;
   util::FileSelector *file_selector_;
   model::Wizard *model_;
+  QLineEdit *password_;
 
   void setModel(model::Wizard *model);
   void stopWorker();

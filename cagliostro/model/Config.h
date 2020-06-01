@@ -13,6 +13,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #include "Wizard.h"
 #include "content/Content.h"
 #include "Selection.h"
+#include "Source.h"
 
 #include <QDir>
 #include <QIODevice>
@@ -27,12 +28,13 @@ class Config : public QObject {
 
  public:
   enum class Error {
-    ParserError,
-    ResourceError,
-    OutputError
+	InputError,
+	ParserError,
+	ResourceError,
+	OutputError
   };
 
-  explicit Config(QIODevice *data, const QDir &root_dir, QObject *parent = nullptr);
+  explicit Config(Source *data, const QDir &root_dir, QObject *parent = nullptr);
   void parse();
   explicit operator bool() const noexcept;
 
@@ -62,6 +64,7 @@ class Config : public QObject {
     return raw_value == "true" || raw_value == "1";
   }
 
+  Source *source_;
   QDir root_;
   QXmlStreamReader xml_;
 };
