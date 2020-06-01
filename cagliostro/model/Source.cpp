@@ -25,16 +25,16 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::model {
 
 Source::Source(QIODevice *device, QObject *parent) : QObject(parent), source_(device) {
-
+  source_->setParent(this);
 }
 
 Source::Source(const QString &file_name, QObject *parent) :
-    Source(new QFile(file_name, this), parent) {
+	Source(new QFile(file_name, nullptr), parent) {
 }
 
 QIODevice *Source::open(QIODevice::OpenMode mode) {
   if (source_ == nullptr || (!source_->isOpen() && !source_->open(mode)) || !source_->seek(0)) {
-    return nullptr;
+	return nullptr;
   }
 
   // Extensive amounts of whitespace in the beginning may make this unreliable
@@ -42,115 +42,119 @@ QIODevice *Source::open(QIODevice::OpenMode mode) {
 }
 
 void Source::setPassword(QStringView password) noexcept {
-  password_ = password.toUtf8();
+  if (!password.isEmpty()) {
+	password_ = password.toUtf8();
+  } else {
+	password_ = QByteArray();
+  }
 }
 
 bool Source::isCagliostroHeader(const QByteArray &header) noexcept {
   const auto trimmed_header = header.trimmed(), EXPECTED = QByteArray("<cagliostro ");
   if (trimmed_header.size() <= 3) {
-    return false;
+	return false;
   }
 
   for (int i = 0, size = std::min(trimmed_header.size(), EXPECTED.size()); i < size; ++i) {
-    if (trimmed_header[i] != EXPECTED[i]) {
-      return false;
-    }
+	if (trimmed_header[i] != EXPECTED[i]) {
+	  return false;
+	}
   }
   return true;
 }
 
 QIODevice *Source::decrypt(QIODevice::OpenMode mode) {
   return Source::generate_key_iv(password_,
-                                 [this, mode](unsigned char *key,
-                                              unsigned char *iv,
-                                              unsigned int length) -> QIODevice * {
-                                   // Prepare the decryption engine
-                                   CryptoPP::GCM<CryptoPP::AES>::Decryption decryptor;
-                                   decryptor.SetKeyWithIV(key, length, iv, length);
+								 [this, mode](unsigned char *key,
+											  unsigned char *iv,
+											  unsigned int length) -> QIODevice * {
+								   // Prepare the decryption engine
+								   CryptoPP::GCM<CryptoPP::AES>::Decryption decryptor;
+								   decryptor.SetKeyWithIV(key, length, iv, length);
 
-                                   // Load complete file in buffer and build an pipeline
-                                   const auto cipher = source_->readAll();
-                                   std::string sink;
-                                   auto *decompressor = new CryptoPP::Inflator(new CryptoPP::StringSink(sink));
-                                   CryptoPP::AuthenticatedDecryptionFilter decrypt_algorithm(decryptor, decompressor);
+								   // Load complete file in buffer and build an pipeline
+								   const auto cipher = source_->readAll();
+								   std::string sink;
+								   auto *decompressor = new CryptoPP::Inflator(new CryptoPP::StringSink(sink));
+								   CryptoPP::AuthenticatedDecryptionFilter decrypt_algorithm(decryptor, decompressor);
 
-                                   // Try to decrypt the data
-                                   try {
-                                     decrypt_algorithm.Put(reinterpret_cast<const CryptoPP::byte *>(cipher.data()),
-                                                           cipher.size());
-                                     decrypt_algorithm.MessageEnd();
-                                   } catch (...) {
-                                     return nullptr;
-                                   };
+								   // Try to decrypt the data
+								   try {
+									 decrypt_algorithm.Put(reinterpret_cast<const CryptoPP::byte *>(cipher.data()),
+														   cipher.size());
+									 decrypt_algorithm.MessageEnd();
+								   } catch (...) {
+									 return nullptr;
+								   };
 
-                                   // Create a buffer and fill it
-                                   auto *buffer = new QBuffer(this);
-                                   buffer->buffer().resize(sink.size());
-                                   std::memcpy(buffer->buffer().data(), sink.data(), sink.size());
-                                   if (buffer->open(mode)) {
-                                     return buffer;
-                                   } else {
-                                     buffer->deleteLater();
-                                     return nullptr;
-                                   }
-                                 });
+								   // Create a buffer and fill it
+								   auto *buffer = new QBuffer(this);
+								   buffer->buffer().resize(sink.size());
+								   std::memcpy(buffer->buffer().data(), sink.data(), sink.size());
+								   if (buffer->open(mode)) {
+									 return buffer;
+								   } else {
+									 buffer->deleteLater();
+									 return nullptr;
+								   }
+								 });
 }
 
 QByteArray Source::encrypt(QIODevice *source, QStringView password) {
   if (source == nullptr || !source->isOpen()) {
-    return QByteArray();
+	return QByteArray();
   }
 
   auto data = source->readAll();
   if (password.empty()) {
-    return data;
+	return data;
   }
 
   QByteArray encrypted_data;
   Source::generate_key_iv(password.toUtf8(), [&data, &encrypted_data](unsigned char *key,
-                                                                      unsigned char *iv,
-                                                                      unsigned int length) -> QIODevice * {
-    // Prepare the encryption engine
-    CryptoPP::GCM<CryptoPP::AES>::Encryption encryption;
-    encryption.SetKeyWithIV(key, length, iv, length);
+																	  unsigned char *iv,
+																	  unsigned int length) -> QIODevice * {
+	// Prepare the encryption engine
+	CryptoPP::GCM<CryptoPP::AES>::Encryption encryption;
+	encryption.SetKeyWithIV(key, length, iv, length);
 
-    std::string sink;
-    auto *encryption_algorithm =
-        new CryptoPP::AuthenticatedEncryptionFilter(encryption, new CryptoPP::StringSink(sink));
-    CryptoPP::Deflator compressor(encryption_algorithm);
+	std::string sink;
+	auto *encryption_algorithm =
+		new CryptoPP::AuthenticatedEncryptionFilter(encryption, new CryptoPP::StringSink(sink));
+	CryptoPP::Deflator compressor(encryption_algorithm);
 
-    // Try to encrypt the data
-    try {
-      compressor.Put(reinterpret_cast<const CryptoPP::byte *>(data.data()), data.size());
-      compressor.MessageEnd();
-    } catch (...) {
-      return nullptr;
-    };
+	// Try to encrypt the data
+	try {
+	  compressor.Put(reinterpret_cast<const CryptoPP::byte *>(data.data()), data.size());
+	  compressor.MessageEnd();
+	} catch (...) {
+	  return nullptr;
+	};
 
-    // Copy the data
-    encrypted_data.resize(sink.size());
-    std::memcpy(encrypted_data.data(), sink.data(), sink.size());
-    return nullptr;
+	// Copy the data
+	encrypted_data.resize(sink.size());
+	std::memcpy(encrypted_data.data(), sink.data(), sink.size());
+	return nullptr;
   });
 
   return encrypted_data;
 }
 
 QIODevice *Source::generate_key_iv(const QByteArray &password,
-                                   std::function<QIODevice *(unsigned char *,
-                                                             unsigned char *,
-                                                             unsigned int)> callback,
-                                   unsigned int iterations) {
+								   std::function<QIODevice *(unsigned char *,
+															 unsigned char *,
+															 unsigned int)> callback,
+								   unsigned int iterations) {
   CryptoPP::SecByteBlock derived_key_iv(32);
   CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256> key_generator;
   key_generator.DeriveKey(derived_key_iv.data(),
-                          derived_key_iv.size(),
-                          0,
-                          reinterpret_cast<const CryptoPP::byte *>(password.data()),
-                          password.size(),
-                          nullptr,
-                          0,
-                          iterations);
+						  derived_key_iv.size(),
+						  0,
+						  reinterpret_cast<const CryptoPP::byte *>(password.data()),
+						  password.size(),
+						  nullptr,
+						  0,
+						  iterations);
 
   return callback(derived_key_iv.data(), derived_key_iv.data() + 16, 16);
 }
