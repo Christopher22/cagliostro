@@ -19,7 +19,11 @@ ConfigPage::ConfigPage(QWizard *parent)
 	: QWizardPage(parent),
 	  worker_(new QThread(this)),
 	  model_(nullptr),
-	  file_selector_(new util::FileSelector(tr("Please select the survey"), "", false, "", this)),
+	  file_selector_(new util::FileSelector(tr("Please select the survey"),
+											tr("Survey (*.cagliostro)"),
+											false,
+											"",
+											this)),
 	  password_(new QLineEdit(this)) {
 
   this->setTitle(tr("Please specify your input"));
