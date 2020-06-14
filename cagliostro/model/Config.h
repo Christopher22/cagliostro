@@ -28,10 +28,11 @@ class Config : public QObject {
 
  public:
   enum class Error {
-	InputError,
-	ParserError,
-	ResourceError,
-	OutputError
+    InputError,
+    ParserError,
+    ResourceError,
+    OutputError,
+    FailedCheck
   };
 
   explicit Config(Source *data, const QDir &root_dir, QObject *parent = nullptr);
