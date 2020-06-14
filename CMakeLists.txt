@@ -17,6 +17,10 @@ set(CMAKE_AUTOUIC ON)
 
 option(BUILD_CRYPTO_HELPER "Build the crypto helper beside the main executable" ON)
 
+# Get the path to current CMake
+get_filename_component(cagliostro_cmake ${CMAKE_COMMAND} DIRECTORY)
+MESSAGE(STATUS "Building with CMAKE in ${cagliostro_cmake}")
+
 # Use conan with cmake
 if (NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
     message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
@@ -28,7 +32,7 @@ conan_check(REQUIRED)
 # Specify the dependencies
 set(cagliostro_dependencies opencv/4.1.1@conan/stable cryptopp/8.2.0@bincrafters/stable)
 set(cagliostro_options opencv:ffmpeg=False opencv:protobuf=False opencv:freetype=False opencv:harfbuzz=False opencv:eigen=False opencv:glog=False opencv:gflags=False opencv:quirc=False)
-conan_cmake_run(REQUIRES ${cagliostro_dependencies} OPTIONS ${cagliostro_options} BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS BUILD missing ENV path=${CURRENT_CMAKE_PATH})
+conan_cmake_run(REQUIRES ${cagliostro_dependencies} OPTIONS ${cagliostro_options} BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS BUILD missing ENV path=${cagliostro_cmake})
 
 # Define the required components
 set(cagliostro_components Widgets Multimedia MultimediaWidgets)
