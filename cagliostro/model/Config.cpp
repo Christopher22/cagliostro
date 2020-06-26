@@ -16,12 +16,15 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <random>
 #include <chrono>
 
+#include <QApplication>
+#include <QFont>
+
 cagliostro::model::Config::Config(Source *data, const QDir &root_dir, QObject *parent)
-    : QObject(parent), source_(data), xml_(), root_(root_dir) {
+	: QObject(parent), source_(data), xml_(), root_(root_dir) {
   qRegisterMetaType<cagliostro::model::Config::Error>("cagliostro::model::Config::Error");
   source_->setParent(this);
   QObject::connect(this, &Config::error, this, [&](Error, const QString &message) {
-    xml_.raiseError(message);
+	xml_.raiseError(message);
   });
 }
 
@@ -42,22 +45,29 @@ void cagliostro::model::Config::parse() {
   const auto due_date = QDateTime::fromString(this->attribute("due"), Qt::ISODate);
   if (due_date.isValid() && due_date < QDateTime::currentDateTime()) {
     emit this->error(Error::FailedCheck, tr("This survey was already due. Please contact your supervisor."));
-    return;
+	return;
   }
 
   // Parse the participant and the result file
   const auto result_file = root_.absoluteFilePath(this->attribute("result", QString("result.tsv")));
   const auto participant = this->attribute("participant");
   if (participant.isEmpty()) {
-    emit this->error(Error::ParserError, tr("Participant is not defined"));
-    return;
+	emit this->error(Error::ParserError, tr("Participant is not defined"));
+	return;
+  }
+
+  // Allow to override the font size
+  auto font_size = this->attribute("font_size", 0);
+  if (font_size <= 0) {
+	font_size = QApplication::font().pointSize();
   }
 
   // Try to create the wizard
   auto *wizard = new Wizard(
-      participant,
-      this->attribute("title", QString("cagliostro")),
-      this->attribute("complete", tr("You answered all questions already. Thank you for your participation!"))
+	  participant,
+	  this->attribute("title", QString("cagliostro")),
+	  this->attribute("complete", tr("You answered all questions already. Thank you for your participation!")),
+	  font_size
   );
 
   auto *responses = Responses::load(result_file, wizard->participant(), wizard);

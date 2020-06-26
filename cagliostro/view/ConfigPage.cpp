@@ -87,7 +87,7 @@ void ConfigPage::setModel(model::Wizard *model) {
   emit this->completeChanged();
 
   this->setFinalPage(false);
-  this->wizard()->button(QWizard::CommitButton)->setText("Start");
+  this->wizard()->button(QWizard::CommitButton)->setText(tr("Start"));
 }
 
 void ConfigPage::stopWorker() {

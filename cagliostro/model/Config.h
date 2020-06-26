@@ -55,14 +55,22 @@ class Config : public QObject {
 
   template<>
   [[nodiscard]] inline QString attribute(const char *name, QString &&default_value) const noexcept {
-    const QStringRef attribute_value = xml_.attributes().value(name);
-    return attribute_value.isEmpty() && !default_value.isEmpty() ? default_value : attribute_value.toString();
+	const QStringRef attribute_value = xml_.attributes().value(name);
+	return attribute_value.isEmpty() && !default_value.isEmpty() ? default_value : attribute_value.toString();
   }
 
   template<>
   [[nodiscard]] inline bool attribute(const char *name, bool &&default_value) const noexcept {
-    const auto raw_value = this->attribute<QString>(name, default_value ? "true" : "false").toLower();
-    return raw_value == "true" || raw_value == "1";
+	const auto raw_value = this->attribute<QString>(name, default_value ? "true" : "false").toLower();
+	return raw_value == "true" || raw_value == "1";
+  }
+
+  template<>
+  [[nodiscard]] inline int attribute(const char *name, int &&default_value) const noexcept {
+	bool success = false;
+	const auto raw_value = this->attribute<QString>(name, QString::number(default_value));
+	const auto result = raw_value.toInt(&success);
+	return success ? result : default_value;
   }
 
   Source *source_;

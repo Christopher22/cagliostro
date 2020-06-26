@@ -11,10 +11,14 @@ You should have received a copy of the GNU Affero General Public License along w
 
 namespace cagliostro::model {
 
-Wizard::Wizard(QString participant, const QString &title, QString complete_message, QObject *parent)
-	: QObject(parent), participant_(std::move(participant)), complete_message_(std::move(complete_message)) {
+Wizard::Wizard(QString participant, const QString &title, QString complete_message, int font_size, QObject *parent)
+	: QObject(parent),
+	  participant_(std::move(participant)),
+	  complete_message_(std::move(complete_message)),
+	  font_size_(font_size) {
   assert(!participant_.isEmpty());
-
+  assert(font_size_ >= 0);
+  
   this->setObjectName(title);
 }
 
@@ -56,5 +60,9 @@ bool Wizard::includeQuestions() const noexcept {
 	}
   }
   return false;
+}
+
+int Wizard::fontSize() const noexcept {
+  return font_size_;
 }
 }

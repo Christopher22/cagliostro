@@ -13,6 +13,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include <QMessageBox>
 #include <QAbstractButton>
+#include <QApplication>
 
 namespace cagliostro::view {
 
@@ -48,6 +49,17 @@ void Wizard::createView(model::Wizard *wizard) {
   for (auto *page: wizard->pages()) {
 	this->addPage(new Page(page, this));
   }
+
+  QObject::connect(this, &Wizard::currentIdChanged, this, [wizard](int id) {
+	// Execute only once
+	if (id != 1) {
+	  return;
+	}
+
+	auto font = QApplication::font();
+	font.setPointSize(wizard->fontSize());
+	QApplication::setFont(font);
+  });
 }
 
 }

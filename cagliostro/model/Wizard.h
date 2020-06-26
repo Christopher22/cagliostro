@@ -22,22 +22,25 @@ namespace cagliostro::model {
 class Wizard : public QObject {
  Q_OBJECT
   Q_PROPERTY(QString participant READ participant)
-
+  Q_PROPERTY(QString font_size READ participant)
  public:
   explicit Wizard(QString participant,
 				  const QString &title,
 				  QString no_questions_message,
+				  int font_size,
 				  QObject *parent = nullptr);
   [[nodiscard]] QVector<Page *> pages() const noexcept;
   [[nodiscard]] Responses *responses() noexcept;
   [[nodiscard]] QString participant() const noexcept;
   [[nodiscard]] QString completeMessage() const noexcept;
+  [[nodiscard]] int fontSize() const noexcept;
 
   bool save(Page *page);
   [[nodiscard]] bool includeQuestions() const noexcept;
 
  private:
   QString participant_, complete_message_;
+  int font_size_;
 };
 }
 
