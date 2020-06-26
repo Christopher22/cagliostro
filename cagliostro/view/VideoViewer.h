@@ -10,35 +10,36 @@ You should have received a copy of the GNU Affero General Public License along w
 #ifndef CAGLIOSTRO_CAGLIOSTRO_VIEW_VIDEOVIEWER_H_
 #define CAGLIOSTRO_CAGLIOSTRO_VIEW_VIDEOVIEWER_H_
 
-#include <QWidget>
+#include <QLabel>
 #include <QAbstractVideoSurface>
 
 namespace cagliostro::view {
-class VideoViewer : public QWidget {
+class VideoViewer : public QLabel {
  Q_OBJECT
 
  public:
   explicit VideoViewer(const QSize &size, QWidget *parent = nullptr);
   QAbstractVideoSurface *surface();
-  [[nodiscard]] QSize sizeHint() const override;
 
  protected:
   void setFrame(const QImage &frame);
-  void paintEvent(QPaintEvent *event) override;
+  void resizeEvent(QResizeEvent *event) override;
 
  private:
   class VideoSurface : public QAbstractVideoSurface {
    public:
-	explicit VideoSurface(VideoViewer *parent);
+    explicit VideoSurface(VideoViewer *parent);
 
-	bool present(const QVideoFrame &frame) override;
-	bool start(const QVideoSurfaceFormat &format) override;
-	[[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
-	[[nodiscard]] bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
+    bool present(const QVideoFrame &frame) override;
+    bool start(const QVideoSurfaceFormat &format) override;
+    [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
+    [[nodiscard]] bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
   };
 
+  void updateMargins();
+
   VideoSurface *surface_;
-  QImage frame_;
+  QSize frame_size_;
 };
 }
 

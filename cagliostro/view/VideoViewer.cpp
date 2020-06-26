@@ -15,52 +15,61 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::view {
 
 VideoViewer::VideoViewer(const QSize &size, QWidget *parent)
-	: QWidget(parent), surface_(new VideoSurface(this)), frame_(size, QImage::Format_BGR888) {
-  this->setFixedSize(size);
-  this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    : QLabel(parent), surface_(new VideoSurface(this)), frame_size_(size) {
+  this->setScaledContents(true);
+  this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 }
 
 QAbstractVideoSurface *VideoViewer::surface() {
   return surface_;
 }
 
-void VideoViewer::paintEvent(QPaintEvent *event) {
-  if (frame_.isNull()) {
-	return;
-  }
-  QPainter painter(this);
-  painter.drawImage(event->rect(), frame_, event->rect());
-}
-
 void VideoViewer::setFrame(const QImage &frame) {
-  frame_ = frame;
-  const auto frame_size = frame_.size();
-  if (frame_size != this->size()) {
-	this->setFixedSize(frame_size);
-  }
-  this->update();
+  frame_size_ = frame.size();
+  this->updateMargins();
+  QLabel::setPixmap(QPixmap::fromImage(frame, Qt::ColorOnly));
 }
 
-QSize VideoViewer::sizeHint() const {
-  return frame_.size();
+void VideoViewer::updateMargins() {
+  if (frame_size_.isEmpty()) {
+    return;
+  }
+
+  const auto size = this->size();
+  if (size.isEmpty()) {
+    return;
+  }
+
+  if (size.width() * frame_size_.height() > size.height() * frame_size_.width()) {
+    const int m = (size.width() - (frame_size_.width() * size.height() / frame_size_.height())) / 2;
+    this->setContentsMargins(m, 0, m, 0);
+  } else {
+    const int m = (size.height() - (frame_size_.height() * size.width() / frame_size_.width())) / 2;
+    this->setContentsMargins(0, m, 0, m);
+  }
+}
+
+void VideoViewer::resizeEvent(QResizeEvent *event) {
+  this->updateMargins();
+  QLabel::resizeEvent(event);
 }
 
 VideoViewer::VideoSurface::VideoSurface(VideoViewer *parent) : QAbstractVideoSurface(parent) {}
 
 bool VideoViewer::VideoSurface::present(const QVideoFrame &frame) {
   if (!frame.isMapped() || !frame.isValid()) {
-	return false;
+    return false;
   }
 
   const uchar *bytes = frame.bits();
   const int width = frame.width(), height = frame.height(), bytes_per_line = frame.bytesPerLine();
   const QImage::Format format = QImage::Format_BGR888;
   qobject_cast<VideoViewer *>(this->parent())->setFrame(QImage(
-	  bytes,
-	  width,
-	  height,
-	  bytes_per_line,
-	  format
+      bytes,
+      width,
+      height,
+      bytes_per_line,
+      format
   ));
   return true;
 }
