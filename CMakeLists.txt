@@ -32,7 +32,7 @@ conan_check(REQUIRED)
 # Specify the dependencies
 set(cagliostro_dependencies opencv/4.1.1@conan/stable cryptopp/8.2.0@bincrafters/stable)
 set(cagliostro_options opencv:ffmpeg=False opencv:protobuf=False opencv:freetype=False opencv:harfbuzz=False opencv:eigen=False opencv:glog=False opencv:gflags=False opencv:quirc=False)
-conan_cmake_run(REQUIRES ${cagliostro_dependencies} OPTIONS ${cagliostro_options} BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS BUILD missing ENV path=${cagliostro_cmake})
+conan_cmake_run(REQUIRES ${cagliostro_dependencies} OPTIONS ${cagliostro_options} BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS BUILD missing ENV PATH=${cagliostro_cmake} CONAN_CMAKE_PROGRAM=${CMAKE_COMMAND})
 
 # Define the required components
 set(cagliostro_components Widgets Multimedia MultimediaWidgets)
