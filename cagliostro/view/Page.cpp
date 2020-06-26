@@ -17,6 +17,8 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QComboBox>
 #include <QAbstractButton>
 #include <QMessageBox>
+#include <QGuiApplication>
+#include <QScreen>
 
 namespace cagliostro::view {
 
@@ -79,13 +81,18 @@ void Page::initializePage() {
   // WARNING: This is called only once, not on backward.
   QWizardPage::initializePage();
 
+  // Force the pages after the config page into the fullscreen
+  QScreen *screen = QGuiApplication::primaryScreen();
+  QRect screenGeometry = screen->geometry();
+  this->wizard()->setGeometry(screenGeometry);
+
   // Set the corresponding button text
   this->setButtonText(QWizard::CommitButton, page_->nextText());
 
   // Play the video on start
   auto *content = this->page_->content();
   if (content != nullptr) {
-    content->show();
+	content->show();
   }
 }
 

@@ -26,6 +26,9 @@ Wizard::Wizard(QWidget *parent) : QWizard(parent) {
   this->setOption(QWizard::HelpButtonOnRight, false);
   this->setOption(QWizard::HaveCustomButton1, true);
 
+  // The experiment should be shown before any other window
+  this->setWindowFlags(Qt::WindowStaysOnTopHint);
+
   auto *config = new ConfigPage(this);
   QObject::connect(config, &ConfigPage::modelLoaded, this, &Wizard::createView);
   this->addPage(config);
