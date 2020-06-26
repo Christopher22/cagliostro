@@ -58,3 +58,11 @@
     </page>
 </cagliostro>
 ```
+
+Such a file may be understood as a "master file" or a template. For each subject, the experimentators may
+1. Modify the "participant" attribute of the element "cagliostro".
+2. Optionally, modify the header of the video files on a individual basis. Using the provided utility script, such a command may look like `python scripts/replace_header.py stimulus.mp4 HEX_REPLACEMENT`. The output of the script may than be set as the "header" attribute on the corresponding "content" element. As an alternative, this step may be utilized once for all participants, too.
+3. Optionally, randomize the order of pages. Using the provided utility script, such a command may look like `python scripts/shuffle_pages.py TEMPLATE_FILE.cagliostro SUBJECT_FILE.cagliostro`
+4. Optionally, encrypt the file. Using the compiled crypto utility, such a command may look like `cagliostro_crypto[.exe] SUBJECT_FILE.cagliostro ENCRYPTED_SUBJECT_FILE.cagliostro PASSWORD`
+
+This file may than be distributed to the subject. If both the stimuli, the config file and the the executable are shared all together, the participant does not have to select such a file manually.
