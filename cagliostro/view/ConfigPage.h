@@ -42,6 +42,7 @@ class ConfigPage : public QWizardPage {
   model::Wizard *model_;
   QLineEdit *password_;
 
+  void setConfigPath(const QString &file);
   void setModel(model::Wizard *model);
   void stopWorker();
   bool startWorker();

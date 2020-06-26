@@ -26,24 +26,27 @@ ConfigPage::ConfigPage(QWizard *parent)
 											this)),
 	  password_(new QLineEdit(this)) {
 
-  this->setTitle(tr("Please specify your input"));
-  this->setSubTitle(
-	  tr("Please specify the file to the survey you recieved from your supervisors."));
+  this->setTitle(tr("Welcome!"));
   this->setCommitPage(true);
 
   QObject::connect(this, &QObject::destroyed, this, &ConfigPage::stopWorker);
-  QObject::connect(file_selector_, &util::FileSelector::pathSelected, this, [this](const QString &path) {
-	QAbstractButton *custom_button;
-	if (this->wizard() != nullptr && (custom_button = this->wizard()->button(QWizard::CustomButton1)) != nullptr) {
-	  custom_button->setEnabled(!path.isEmpty());
-	}
-  });
+  QObject::connect(file_selector_, &util::FileSelector::pathSelected, this, &ConfigPage::setConfigPath);
 
   // Make the input suitable for passwords
   password_->setEchoMode(QLineEdit::Password);
 
   auto *layout = new QFormLayout();
-  layout->addRow(tr("File"), file_selector_);
+
+  // If the file was automatically determined, do not show the widget, but trigger the signal manually.
+  if (!*file_selector_) {
+	this->setSubTitle(
+		tr("Please specify the file to the survey you recieved from your supervisors."));
+	layout->addRow(tr("File"), file_selector_);
+  } else {
+	this->setSubTitle(
+		tr("Please enter the password you recieved from your supervisors."));
+	file_selector_->setVisible(false);
+  }
   layout->addRow(tr("Password"), password_);
   this->setLayout(layout);
 }
@@ -59,6 +62,11 @@ void ConfigPage::initializePage() {
 		QMessageBox::warning(this, tr("Invalid input"), tr("Cagliostro was unable to open the requested file."));
 	  }
 	});
+
+	// If the file is already selected, allow to continue.
+	if (*file_selector_) {
+	  this->setConfigPath(file_selector_->path());
+	}
   }
 
   QWizardPage::initializePage();
@@ -146,5 +154,12 @@ bool ConfigPage::validatePage() {
   this->wizard()->button(QWizard::CustomButton1)->setVisible(false);
 
   return true;
+}
+
+void ConfigPage::setConfigPath(const QString &path) {
+  QAbstractButton *custom_button;
+  if (this->wizard() != nullptr && (custom_button = this->wizard()->button(QWizard::CustomButton1)) != nullptr) {
+	custom_button->setEnabled(!path.isEmpty());
+  }
 }
 }

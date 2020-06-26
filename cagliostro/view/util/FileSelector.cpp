@@ -42,6 +42,23 @@ FileSelector::FileSelector(QString description, QString filter, bool for_saving,
   layout->addWidget(selector);
   layout->setMargin(0);
   this->setLayout(layout);
+
+  // Fill the file path automatically, if a single matching file is in the working directory
+  if (!filter_.isEmpty()) {
+	// Get the extension from the filter
+	const QRegularExpression filter_regex("[^(]+\\(([^)]+)");
+	const auto match = filter_regex.match(filter_);
+	if (!match.isValid()) {
+	  return;
+	}
+
+	// Query for such a file
+	QDir current_dir = QDir::currentPath();
+	auto files = current_dir.entryInfoList(QStringList(match.captured(1)), QDir::Files | QDir::Readable);
+	if (files.size() == 1) {
+	  this->setPath(files[0].absoluteFilePath());
+	}
+  }
 }
 
 void FileSelector::selectPath() {

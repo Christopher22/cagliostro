@@ -58,4 +58,4 @@ class FileSelector : public QWidget {
 };
 }
 
-#endif //ROIWIZ_SRC_VIEW_UTIL_FILESELECTOR_H_
+#endif //CAGLIOSTRO_CAGLIOSTRO_VIEW_UTIL_FILESELECTOR_H_
