@@ -12,18 +12,27 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include <QLabel>
 #include <QAbstractVideoSurface>
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
+#include <QImage>
 
 namespace cagliostro::view {
-class VideoViewer : public QLabel {
+
+class VideoViewer : public QOpenGLWidget, protected QOpenGLFunctions {
  Q_OBJECT
 
  public:
   explicit VideoViewer(const QSize &size, QWidget *parent = nullptr);
   QAbstractVideoSurface *surface();
+  inline QOpenGLTexture *frame() noexcept {
+    return texture_;
+  }
 
  protected:
-  void setFrame(const QImage &frame);
-  void resizeEvent(QResizeEvent *event) override;
+  void initializeGL() override;
+  void paintGL() override;
 
  private:
   class VideoSurface : public QAbstractVideoSurface {
@@ -36,10 +45,31 @@ class VideoViewer : public QLabel {
     [[nodiscard]] bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
   };
 
-  void updateMargins();
+  bool initTextures();
+  bool initShaders();
 
   VideoSurface *surface_;
-  QSize frame_size_;
+  QVector<QVector3D> vertex_coordinates_;
+  QVector<QVector2D> texture_coordinates_;
+  QOpenGLShaderProgram program;
+  QOpenGLTexture *texture_;
+  QSize size_;
+
+  constexpr static const char *VERTEX_SHADER = R"|(
+attribute vec4 vertex;
+attribute vec2 texCoord;
+varying vec2 texc;
+void main(void) {
+    gl_Position = vertex;
+    texc = texCoord;
+})|";
+
+  constexpr static const char *FRAGMENT_SHADER = R"|(
+uniform sampler2D texture;
+varying vec2 texc;
+void main(void) {
+  gl_FragColor = texture2D(texture,texc);
+})|";
 };
 }
 

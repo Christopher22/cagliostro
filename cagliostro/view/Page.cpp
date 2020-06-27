@@ -12,40 +12,37 @@ You should have received a copy of the GNU Affero General Public License along w
 #include "Scale.h"
 #include "../model/content/Video.h"
 
-#include <QVBoxLayout>
-#include <QFormLayout>
 #include <QComboBox>
-#include <QAbstractButton>
 #include <QMessageBox>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QLabel>
 
 namespace cagliostro::view {
 
-Page::Page(model::Page *page, QWizard *parent) : QWizardPage(parent), page_(page) {
-  this->setTitle(page->title());
-  this->setSubTitle(page->description());
-  this->setCommitPage(true);
+Page::Page(model::Page *page, util::Dialog *parent)
+    : util::DialogPage(parent), page_(page), question_layout_(new QFormLayout()) {
 
   // Create the layout and add the content widget, if provided
   auto *layout = new QVBoxLayout();
   layout->setAlignment(Qt::AlignCenter);
+  layout->addWidget(new QLabel(page->title(), this), 0, Qt::AlignLeft);
+  layout->addWidget(new QLabel(page->description(), this), 0, Qt::AlignLeft);
 
-  QWidget *content = this->createContentWidget(page->content());
-  if (content != nullptr) {
-    layout->addWidget(content);
+  QWidget *renderer = this->createContentWidget(page->content());
+  if (renderer != nullptr) {
+    layout->addWidget(renderer);
   }
 
   // Create the question layout
-  auto *question_layout = new QFormLayout();
   for (auto *question: page->questions()) {
     QWidget *widget = this->createQuestionWidget(question);
     if (widget != nullptr) {
-      question_layout->addRow(question->text(), widget);
+      question_layout_->addRow(question->text(), widget);
     }
   }
+  layout->addLayout(question_layout_);
 
-  layout->addLayout(question_layout);
   this->setLayout(layout);
 }
 
@@ -56,7 +53,7 @@ QWidget *Page::createQuestionWidget(model::Question *question) noexcept {
   }
 
   auto *widget = new Scale(selection, this);
-  this->registerField(question->fullName(true), widget, "selection", SIGNAL(valueSelected()));
+  QObject::connect(widget, &Scale::valueSelected, this, &Page::checkReady);
   return widget;
 }
 
@@ -73,34 +70,27 @@ QWidget *Page::createContentWidget(model::content::Content *content) noexcept {
   }
 
   // Inform the widget once the content was completely played
-  QObject::connect(content, &model::content::Content::finished, this, &Page::completeChanged);
+  QObject::connect(content, &model::content::Content::finished, this, &Page::checkReady);
   return widget;
 }
 
-void Page::initializePage() {
-  // WARNING: This is called only once, not on backward.
-  QWizardPage::initializePage();
-
-  // Force the pages after the config page into the fullscreen
-  QScreen *screen = QGuiApplication::primaryScreen();
-  QRect screenGeometry = screen->geometry();
-  this->wizard()->setGeometry(screenGeometry);
-
+void Page::prepare() {
   // Set the corresponding button text
-  this->setButtonText(QWizard::CommitButton, page_->nextText());
+  this->buttons()->button(0)->setText(page_->nextText());
 
   // Play the video on start
   auto *content = this->page_->content();
   if (content != nullptr) {
-	content->show();
+    content->show();
+  }
+
+  // If there are no questions, continue directly
+  if (question_layout_->count() == 0) {
+    emit this->ready(true);
   }
 }
 
-bool Page::validatePage() {
-  if (!QWizardPage::validatePage()) {
-    return false;
-  }
-
+bool Page::cleanUp() {
   // Stop playing the video
   auto *content = page_->content();
   if (content != nullptr) {
@@ -110,16 +100,32 @@ bool Page::validatePage() {
   // Save questions
   if (!page_->save()) {
     QMessageBox::critical(this,
-                          "Saving failed",
-                          "Logging your recent answer(s) failed. Please contact your supervisor.");
+                          tr("Saving failed"),
+                          tr("Logging your recent answer(s) failed. Please contact your supervisor."
+                          ));
+    return false;
   }
 
   return true;
 }
 
-bool Page::isComplete() const {
+void Page::checkReady() {
+  // Check that the user have seen the content if it is obligatory
   const auto *content = page_->content();
-  return QWizardPage::isComplete() && (content == nullptr || !content->isObligatory() || content->isFinished());
+  if (content == nullptr || !content->isObligatory() || content->isFinished()) {
+    // Check if all questions are answered
+    for (int i = 0, size = question_layout_->count(); i < size; ++i) {
+      auto item = question_layout_->itemAt(i, QFormLayout::FieldRole);
+      auto question = item != nullptr ? qobject_cast<Scale *>(item->widget()) : nullptr;
+      if (question != nullptr && !*question) {
+        // This question was not answered.
+        return;
+      }
+    }
+
+    // Inform the dialog that the user may continue
+    emit this->ready(true);
+  }
 }
 
 }

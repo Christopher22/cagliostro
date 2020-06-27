@@ -12,22 +12,22 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QAbstractButton>
 #include <QFormLayout>
 #include <QMessageBox>
+#include <QLabel>
+#include <QPushButton>
 
 namespace cagliostro::view {
 
-ConfigPage::ConfigPage(QWizard *parent)
-	: QWizardPage(parent),
-	  worker_(new QThread(this)),
-	  model_(nullptr),
-	  file_selector_(new util::FileSelector(tr("Please select the survey"),
-											tr("Survey (*.cagliostro)"),
-											false,
-											"",
-											this)),
-	  password_(new QLineEdit(this)) {
-
-  this->setTitle(tr("Welcome!"));
-  this->setCommitPage(true);
+ConfigPage::ConfigPage(util::Dialog *parent)
+    : util::DialogPage(parent),
+      worker_(new QThread(this)),
+      model_(nullptr),
+      file_selector_(new util::FileSelector(tr("Please select the survey"),
+                                            tr("Survey (*.cagliostro)"),
+                                            false,
+                                            "",
+                                            this)),
+      password_(new QLineEdit(this)),
+      load_button_id_(-1) {
 
   QObject::connect(this, &QObject::destroyed, this, &ConfigPage::stopWorker);
   QObject::connect(file_selector_, &util::FileSelector::pathSelected, this, &ConfigPage::setConfigPath);
@@ -35,69 +35,67 @@ ConfigPage::ConfigPage(QWizard *parent)
   // Make the input suitable for passwords
   password_->setEchoMode(QLineEdit::Password);
 
-  auto *layout = new QFormLayout();
+  auto layout = new QVBoxLayout();
+  auto *fields = new QFormLayout();
 
   // If the file was automatically determined, do not show the widget, but trigger the signal manually.
   if (!*file_selector_) {
-	this->setSubTitle(
-		tr("Please specify the file to the survey you recieved from your supervisors."));
-	layout->addRow(tr("File"), file_selector_);
+    layout->addWidget(new QLabel(tr("Please specify the file to the survey you recieved from your supervisors."),
+                                 this));
+    fields->addRow(tr("File"), file_selector_);
   } else {
-	this->setSubTitle(
-		tr("Please enter the password you recieved from your supervisors."));
-	file_selector_->setVisible(false);
+    layout->addWidget(new QLabel(tr("Please enter the password you recieved from your supervisors."),
+                                 this));
+    file_selector_->setVisible(false);
   }
-  layout->addRow(tr("Password"), password_);
+  fields->addRow(tr("Password"), password_);
+  layout->addLayout(fields);
+
   this->setLayout(layout);
 }
 
-void ConfigPage::initializePage() {
-  QAbstractButton *custom_button;
-  if (this->wizard() != nullptr && (custom_button = this->wizard()->button(QWizard::CustomButton1)) != nullptr) {
-	custom_button->setEnabled(false);
-	custom_button->setVisible(true);
-	custom_button->setText(tr("Load"));
-	QObject::connect(custom_button, &QAbstractButton::clicked, this, [this]() {
-	  if (!this->startWorker()) {
-		QMessageBox::warning(this, tr("Invalid input"), tr("Cagliostro was unable to open the requested file."));
-	  }
-	});
+void ConfigPage::prepare() {
+  // Add the load button
+  auto *button = new QPushButton(tr("Load"));
+  button->setEnabled(false);
+  QObject::connect(button, &QAbstractButton::clicked, this, [this]() {
+    if (!this->startWorker()) {
+      QMessageBox::warning(this, tr("Invalid input"), tr("Cagliostro was unable to open the requested file."));
+    }
+  });
+  load_button_id_ = this->buttons()->addButton(button);
+  assert(load_button_id_ != -1);
 
-	// If the file is already selected, allow to continue.
-	if (*file_selector_) {
-	  this->setConfigPath(file_selector_->path());
-	}
+  // If the file is already selected, allow to continue.
+  if (*file_selector_) {
+    this->setConfigPath(file_selector_->path());
   }
-
-  QWizardPage::initializePage();
-}
-
-bool ConfigPage::isComplete() const {
-  return model_ != nullptr;
 }
 
 void ConfigPage::setModel(model::Wizard *model) {
   if (model == model_ || model->thread() != nullptr) {
-	return;
+    return;
   }
 
   model->moveToThread(this->thread());
   model_ = model;
   emit this->modelLoaded(model);
-  emit this->completeChanged();
+  emit this->ready(true);
 
-  this->setFinalPage(false);
-  this->wizard()->button(QWizard::CommitButton)->setText(tr("Start"));
+  // Do not overwrite the default if no questions are present
+  if (model->includeQuestions()) {
+    this->buttons()->button(util::Dialog::NEXT_BUTTON)->setText(tr("Start"));
+  }
 }
 
 void ConfigPage::stopWorker() {
   if (!worker_->isRunning()) {
-	return;
+    return;
   }
 
   worker_->quit();
   if (!worker_->wait(1000)) {
-	qWarning("Unable to stop worker!");
+    qWarning("Unable to stop worker!");
   }
 }
 
@@ -105,17 +103,17 @@ bool ConfigPage::startWorker() {
   // Get info of the file given as argument
   const QFileInfo file_info(file_selector_->path());
   if (!file_info.exists()) {
-	return false;
+    return false;
   }
 
   // Disable file selection
   file_selector_->setEnabled(false);
-  this->wizard()->button(QWizard::CustomButton1)->setEnabled(false);
+  this->buttons()->button(load_button_id_)->setEnabled(false);
 
   // Create both source and config - config will take ownership
   auto *source = new model::Source(file_info.absoluteFilePath());
   if (!password_->text().isEmpty()) {
-	source->setPassword(password_->text());
+    source->setPassword(password_->text());
   }
   auto *config = new model::Config(source, file_info.absolutePath(), nullptr);
 
@@ -129,12 +127,12 @@ bool ConfigPage::startWorker() {
   QObject::connect(this, &ConfigPage::loadingStarted, config, qOverload<>(&model::Config::parse));
 
   if (!worker_->isRunning()) {
-	QObject::connect(worker_, &QThread::started, this, [this]() {
-	  emit this->loadingStarted();
-	});
-	worker_->start();
+    QObject::connect(worker_, &QThread::started, this, [this]() {
+      emit this->loadingStarted();
+    });
+    worker_->start();
   } else {
-	emit this->loadingStarted();
+    emit this->loadingStarted();
   }
   return true;
 }
@@ -142,24 +140,16 @@ bool ConfigPage::startWorker() {
 void ConfigPage::handleError(model::Config::Error, const QString &error_message) {
   QMessageBox::warning(this, tr("File error"), error_message);
   file_selector_->setEnabled(true);
-  this->wizard()->button(QWizard::CustomButton1)->setEnabled(true);
+  this->buttons()->button(load_button_id_)->setEnabled(true);
 }
 
-bool ConfigPage::validatePage() {
-  if (!QWizardPage::validatePage()) {
-	return false;
-  }
-
+bool ConfigPage::cleanUp() {
   this->stopWorker();
-  this->wizard()->button(QWizard::CustomButton1)->setVisible(false);
-
+  this->buttons()->removeButton(load_button_id_);
   return true;
 }
 
 void ConfigPage::setConfigPath(const QString &path) {
-  QAbstractButton *custom_button;
-  if (this->wizard() != nullptr && (custom_button = this->wizard()->button(QWizard::CustomButton1)) != nullptr) {
-	custom_button->setEnabled(!path.isEmpty());
-  }
+  this->buttons()->button(load_button_id_)->setEnabled(!path.isEmpty());
 }
 }

@@ -15,62 +15,100 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::view {
 
 VideoViewer::VideoViewer(const QSize &size, QWidget *parent)
-    : QLabel(parent), surface_(new VideoSurface(this)), frame_size_(size) {
-  this->setScaledContents(true);
-  this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    : QOpenGLWidget(parent),
+      surface_(new VideoSurface(this)),
+      size_(size),
+      texture_(nullptr),
+      texture_coordinates_({
+                               QVector2D(0, 1),
+                               QVector2D(1, 1),
+                               QVector2D(0, 0),
+                               QVector2D(1, 0)}),
+      vertex_coordinates_({
+                              QVector3D(-1, -1, 1),
+                              QVector3D(1, -1, 1),
+                              QVector3D(-1, 1, 1),
+                              QVector3D(1, 1, 1)}
+      ) {
+
+  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  this->setMinimumSize(size);
+}
+
+bool VideoViewer::initTextures() {
+  texture_ = new QOpenGLTexture(QOpenGLTexture::Target2D);
+  texture_->setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Linear);
+  texture_->setWrapMode(QOpenGLTexture::Repeat); // Reuse texture coordinates (1.1, 1.2) = (0.1, 0.2)
+  texture_->setSize(size_.width(), size_.height(), 3);
+  texture_->setFormat(QOpenGLTexture::RGBFormat);
+  texture_->allocateStorage(QOpenGLTexture::BGR, QOpenGLTexture::UInt8);
+  return texture_->isStorageAllocated();
+}
+
+bool VideoViewer::initShaders() {
+  auto *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
+  //Compile vertex shader code
+  if (!vshader->compileSourceCode(VERTEX_SHADER)) {
+    return false;
+  }
+
+  auto *fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+  //Compile texture shader code
+  if (!fshader->compileSourceCode(FRAGMENT_SHADER)) {
+    return false;
+  }
+
+  program.addShader(vshader);//Add vertex shader
+  program.addShader(fshader);//Add texture fragment shader
+  program.bindAttributeLocation("vertex_coordinates", 0);//bind vertex attribute location
+  program.bindAttributeLocation("texture_coordinates", 1);//Bound texture attribute location
+
+  // Link and bind shader pipeline
+  return program.link() && program.bind();
+}
+
+void VideoViewer::initializeGL() {
+  this->initializeOpenGLFunctions(); //Initialize OPenGL function
+  this->glClearColor(0, 0, 0, 0); //Set the background to black
+  this->glEnable(GL_CULL_FACE);
+  this->glEnable(GL_TEXTURE_2D);
+  if (!this->initTextures()) {
+    qWarning("Unable to initialize textures.");
+  }
+  if (!this->initShaders()) {
+    qWarning("Unable to initialize shaders.");
+  }
+}
+
+void VideoViewer::paintGL() {
+  //Clear screen buffer and depth buffer
+  this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  //Bound texture
+  texture_->bind();
+
+  program.enableAttributeArray(0);
+  program.enableAttributeArray(1);
+  program.setAttributeArray(0, vertex_coordinates_.constData());
+  program.setAttributeArray(1, texture_coordinates_.constData());
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 QAbstractVideoSurface *VideoViewer::surface() {
   return surface_;
 }
 
-void VideoViewer::setFrame(const QImage &frame) {
-  frame_size_ = frame.size();
-  this->updateMargins();
-  QLabel::setPixmap(QPixmap::fromImage(frame, Qt::ColorOnly));
-}
-
-void VideoViewer::updateMargins() {
-  if (frame_size_.isEmpty()) {
-    return;
-  }
-
-  const auto size = this->size();
-  if (size.isEmpty()) {
-    return;
-  }
-
-  if (size.width() * frame_size_.height() > size.height() * frame_size_.width()) {
-    const int m = (size.width() - (frame_size_.width() * size.height() / frame_size_.height())) / 2;
-    this->setContentsMargins(m, 0, m, 0);
-  } else {
-    const int m = (size.height() - (frame_size_.height() * size.width() / frame_size_.width())) / 2;
-    this->setContentsMargins(0, m, 0, m);
-  }
-}
-
-void VideoViewer::resizeEvent(QResizeEvent *event) {
-  this->updateMargins();
-  QLabel::resizeEvent(event);
-}
-
 VideoViewer::VideoSurface::VideoSurface(VideoViewer *parent) : QAbstractVideoSurface(parent) {}
 
 bool VideoViewer::VideoSurface::present(const QVideoFrame &frame) {
-  if (!frame.isMapped() || !frame.isValid()) {
+  auto viewer = qobject_cast<VideoViewer *>(this->parent());
+  auto texture = viewer->frame();
+  if (texture == nullptr || !frame.isMapped() || !frame.isValid()) {
     return false;
   }
 
-  const uchar *bytes = frame.bits();
-  const int width = frame.width(), height = frame.height(), bytes_per_line = frame.bytesPerLine();
-  const QImage::Format format = QImage::Format_BGR888;
-  qobject_cast<VideoViewer *>(this->parent())->setFrame(QImage(
-      bytes,
-      width,
-      height,
-      bytes_per_line,
-      format
-  ));
+  texture->setData(QOpenGLTexture::BGR, QOpenGLTexture::UInt8, frame.bits());
+  viewer->update();
   return true;
 }
 

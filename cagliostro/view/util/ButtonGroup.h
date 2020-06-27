@@ -7,34 +7,29 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
-#define CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
+#ifndef CAGLIOSTRO_CAGLIOSTRO_VIEW_UTIL_BUTTONGROUP_H_
+#define CAGLIOSTRO_CAGLIOSTRO_VIEW_UTIL_BUTTONGROUP_H_
 
-#include "util/DialogPage.h"
-
-#include "../model/Page.h"
-#include "../model/content/Content.h"
-
+#include <QWidget>
+#include <QButtonGroup>
+#include <QHBoxLayout>
+#include <QAbstractButton>
 #include <QVector>
-#include <QFormLayout>
 
-namespace cagliostro::view {
-class Page : public util::DialogPage {
+namespace cagliostro::view::util {
+class ButtonGroup : public QWidget {
  public:
-  explicit Page(model::Page *page, util::Dialog *parent = nullptr);
+  explicit ButtonGroup(const QVector<QAbstractButton *> &default_buttons, QWidget *parent = nullptr);
 
- protected:
-  void prepare() override;
-  bool cleanUp() override;
+  int addButton(QAbstractButton *button) noexcept;
+  bool removeButton(int id) noexcept;
+  QAbstractButton *button(int id) noexcept;
 
  private:
-  void checkReady();
-  QWidget *createQuestionWidget(model::Question *question) noexcept;
-  QWidget *createContentWidget(model::content::Content *question) noexcept;
-
-  model::Page *page_;
-  QFormLayout *question_layout_;
+  QButtonGroup *buttons_;
+  QHBoxLayout *visualization_;
+  int reserved_, current_id_;
 };
 }
 
-#endif //CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
+#endif //CAGLIOSTRO_CAGLIOSTRO_VIEW_UTIL_BUTTONGROUP_H_

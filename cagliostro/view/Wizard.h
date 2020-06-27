@@ -11,16 +11,16 @@ You should have received a copy of the GNU Affero General Public License along w
 #define CAGLIOSTRO_CAGLIOSTRO_VIEW_WIZARD_H_
 
 #include "../model/Wizard.h"
-
-#include <QWizard>
+#include "util/Dialog.h"
 
 namespace cagliostro::view {
-class Wizard : public QWizard {
+class Wizard : public util::Dialog {
  public:
   explicit Wizard(QWidget *parent = nullptr);
 
  private:
   void createView(model::Wizard *wizard);
+  model::Wizard *wizard_;
 };
 }
 

@@ -10,37 +10,39 @@ You should have received a copy of the GNU Affero General Public License along w
 #ifndef CAGLIOSTRO_CAGLIOSTRO_VIEW_CONFIGPAGE_H_
 #define CAGLIOSTRO_CAGLIOSTRO_VIEW_CONFIGPAGE_H_
 
+#include "util/DialogPage.h"
 #include "util/FileSelector.h"
 #include "../model/Wizard.h"
 #include "../model/Config.h"
 
-#include <QWizardPage>
 #include <QThread>
 #include <QLineEdit>
 
 namespace cagliostro::view {
-class ConfigPage : public QWizardPage {
+class ConfigPage : public util::DialogPage {
  Q_OBJECT
   Q_PROPERTY(model::Wizard *model READ model NOTIFY modelLoaded);
 
  public:
-  explicit ConfigPage(QWizard *parent = nullptr);
-  void initializePage() override;
-  bool validatePage() override;
-  [[nodiscard]] bool isComplete() const override;
+  explicit ConfigPage(util::Dialog *parent = nullptr);
   [[nodiscard]] inline model::Wizard *model() const noexcept {
-	return model_;
+    return model_;
   }
 
  signals:
   void modelLoaded(model::Wizard *model);
   void loadingStarted();
 
+ protected:
+  void prepare() override;
+  bool cleanUp() override;
+
  private:
   QThread *worker_;
   util::FileSelector *file_selector_;
   model::Wizard *model_;
   QLineEdit *password_;
+  int load_button_id_;
 
   void setConfigPath(const QString &file);
   void setModel(model::Wizard *model);

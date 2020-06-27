@@ -34,14 +34,18 @@ Scale::Scale(model::Selection *selection, QWidget *parent) : QWidget(parent), se
 	auto *label = new QLabel(values[i], this);
 	layout->addWidget(button, 0, i, Qt::AlignCenter);
 	layout->addWidget(label, 1, i, Qt::AlignCenter);
-	buttons->addButton(button, i);
-	label->setBuddy(button);
+    buttons->addButton(button, i);
+    label->setBuddy(button);
   }
   this->setLayout(layout);
 }
 
 QString Scale::selection() const noexcept {
   return selection_->answer();
+}
+
+Scale::operator bool() const noexcept {
+  return selection_->isAnswered();
 }
 
 }

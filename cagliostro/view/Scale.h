@@ -22,6 +22,7 @@ class Scale : public QWidget {
  public:
   explicit Scale(model::Selection *selection, QWidget *parent = nullptr);
   [[nodiscard]] QString selection() const noexcept;
+  [[nodiscard]] explicit operator bool() const noexcept;
 
  signals:
   void valueSelected();

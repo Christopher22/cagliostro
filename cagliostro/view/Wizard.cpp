@@ -12,54 +12,46 @@ You should have received a copy of the GNU Affero General Public License along w
 #include "ConfigPage.h"
 
 #include <QMessageBox>
-#include <QAbstractButton>
 #include <QApplication>
 
 namespace cagliostro::view {
 
-Wizard::Wizard(QWidget *parent) : QWizard(parent) {
+Wizard::Wizard(QWidget *parent) : util::Dialog(parent), wizard_(nullptr) {
   // Set the general config
   this->setWindowTitle(tr("Cagliostro"));
-  this->setTitleFormat(Qt::MarkdownText);
-  this->setSubTitleFormat(Qt::MarkdownText);
-  this->setOption(QWizard::NoCancelButton, true);
-  this->setOption(QWizard::HaveHelpButton, false);
-  this->setOption(QWizard::HelpButtonOnRight, false);
-  this->setOption(QWizard::HaveCustomButton1, true);
 
   // The experiment should be shown before any other window
   this->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   auto *config = new ConfigPage(this);
   QObject::connect(config, &ConfigPage::modelLoaded, this, &Wizard::createView);
-  this->addPage(config);
-}
+  QObject::connect(this, &Wizard::enterPage, this, [this](int id) {
+    if (id == 1) {
+      auto font = QApplication::font();
+      font.setPointSize(wizard_->fontSize());
+      QApplication::setFont(font);
 
-void Wizard::createView(model::Wizard *wizard) {
-  this->setWindowTitle(wizard->objectName());
-
-  if (!wizard->includeQuestions()) {
-	this->setButtonText(QWizard::FinishButton, tr("Exit"));
-	this->button(QWizard::FinishButton)->setEnabled(true);
-	QMessageBox::information(this, wizard->objectName(), wizard->completeMessage());
-	return;
-  }
-
-  // Add the pages of wizard model
-  for (auto *page: wizard->pages()) {
-	this->addPage(new Page(page, this));
-  }
-
-  QObject::connect(this, &Wizard::currentIdChanged, this, [wizard](int id) {
-	// Execute only once
-	if (id != 1) {
-	  return;
-	}
-
-	auto font = QApplication::font();
-	font.setPointSize(wizard->fontSize());
-	QApplication::setFont(font);
+      this->showFullScreen();
+    }
   });
 }
 
+void Wizard::createView(model::Wizard *wizard) {
+  wizard_ = wizard;
+
+  this->setWindowTitle(wizard->objectName());
+
+  if (!wizard->includeQuestions()) {
+    auto button = this->buttons()->button(NEXT_BUTTON);
+    button->setText(tr("Exit"));
+    button->setEnabled(true);
+    QMessageBox::information(this, wizard->objectName(), wizard->completeMessage());
+    return;
+  }
+
+  // Add the pages of wizard model
+  for (model::Page *page: wizard->pages()) {
+    new Page(page, this);
+  }
+}
 }

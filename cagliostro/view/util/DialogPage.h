@@ -7,34 +7,34 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
-#define CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
+#ifndef CAGLIOSTRO_CAGLIOSTRO_VIEW_UTIL_DIALOGPAGE_H_
+#define CAGLIOSTRO_CAGLIOSTRO_VIEW_UTIL_DIALOGPAGE_H_
 
-#include "util/DialogPage.h"
+#include "Dialog.h"
+#include "ButtonGroup.h"
 
-#include "../model/Page.h"
-#include "../model/content/Content.h"
+namespace cagliostro::view::util {
+class DialogPage : public QWidget {
+ Q_OBJECT
 
-#include <QVector>
-#include <QFormLayout>
-
-namespace cagliostro::view {
-class Page : public util::DialogPage {
  public:
-  explicit Page(model::Page *page, util::Dialog *parent = nullptr);
+  explicit DialogPage(Dialog *dialog);
 
  protected:
-  void prepare() override;
-  bool cleanUp() override;
+  ButtonGroup *buttons() noexcept;
+  virtual void prepare() {};
+  virtual bool cleanUp() { return true; };
+
+ signals:
+  void ready(bool);
 
  private:
-  void checkReady();
-  QWidget *createQuestionWidget(model::Question *question) noexcept;
-  QWidget *createContentWidget(model::content::Content *question) noexcept;
+  void handleEnterSignal(int id);
+  void handleLeaveSignal(int id);
 
-  model::Page *page_;
-  QFormLayout *question_layout_;
+  Dialog *dialog_;
+  int page_id_;
 };
 }
 
-#endif //CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
+#endif //CAGLIOSTRO_CAGLIOSTRO_VIEW_UTIL_DIALOGPAGE_H_
