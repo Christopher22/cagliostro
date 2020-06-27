@@ -26,8 +26,14 @@ Page::Page(model::Page *page, util::Dialog *parent)
   // Create the layout and add the content widget, if provided
   auto *layout = new QVBoxLayout();
   layout->setAlignment(Qt::AlignCenter);
-  layout->addWidget(new QLabel(page->title(), this), 0, Qt::AlignLeft);
-  layout->addWidget(new QLabel(page->description(), this), 0, Qt::AlignLeft);
+
+  auto title = new QLabel(page->title(), this);
+  title->setTextFormat(Qt::MarkdownText);
+  layout->addWidget(title, 0, Qt::AlignLeft);
+
+  auto description = new QLabel(page->description(), this);
+  description->setTextFormat(Qt::MarkdownText);
+  layout->addWidget(description, 0, Qt::AlignLeft);
 
   QWidget *renderer = this->createContentWidget(page->content());
   if (renderer != nullptr) {
