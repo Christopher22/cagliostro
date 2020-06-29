@@ -18,6 +18,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QDir>
 #include <QIODevice>
 #include <QXmlStreamReader>
+#include <QSet>
 
 #include <functional>
 
@@ -76,6 +77,7 @@ class Config : public QObject {
   Source *source_;
   QDir root_;
   QXmlStreamReader xml_;
+  QSet<QString> used_ids_;
 };
 
 }
