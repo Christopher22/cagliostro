@@ -32,7 +32,6 @@ VideoViewer::VideoViewer(const QSize &size, QWidget *parent)
 	  ) {
 
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  this->setMinimumSize(size);
 }
 
 bool VideoViewer::initTextures() {
@@ -103,6 +102,10 @@ void VideoViewer::showEvent(QShowEvent *event) {
 
   // Enforce OpenGL to render
   this->update();
+}
+
+QSize VideoViewer::sizeHint() const {
+  return size_;
 }
 
 VideoViewer::VideoSurface::VideoSurface(VideoViewer *parent) : QAbstractVideoSurface(parent) {}

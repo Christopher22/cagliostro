@@ -26,6 +26,7 @@ class VideoViewer : public QOpenGLWidget, protected QOpenGLFunctions {
  public:
   explicit VideoViewer(const QSize &size, QWidget *parent = nullptr);
   QAbstractVideoSurface *surface();
+  [[nodiscard]] QSize sizeHint() const override;
   [[nodiscard]] inline QOpenGLTexture *frame() noexcept {
 	return texture_;
   }
