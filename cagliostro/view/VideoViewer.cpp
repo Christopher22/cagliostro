@@ -15,21 +15,21 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::view {
 
 VideoViewer::VideoViewer(const QSize &size, QWidget *parent)
-    : QOpenGLWidget(parent),
-      surface_(new VideoSurface(this)),
-      size_(size),
-      texture_(nullptr),
-      texture_coordinates_({
-                               QVector2D(0, 1),
-                               QVector2D(1, 1),
-                               QVector2D(0, 0),
-                               QVector2D(1, 0)}),
-      vertex_coordinates_({
-                              QVector3D(-1, -1, 1),
-                              QVector3D(1, -1, 1),
-                              QVector3D(-1, 1, 1),
-                              QVector3D(1, 1, 1)}
-      ) {
+	: QOpenGLWidget(parent),
+	  surface_(new VideoSurface(this)),
+	  size_(size),
+	  texture_(nullptr),
+	  texture_coordinates_({
+							   QVector2D(0, 1),
+							   QVector2D(1, 1),
+							   QVector2D(0, 0),
+							   QVector2D(1, 0)}),
+	  vertex_coordinates_({
+							  QVector3D(-1, -1, 1),
+							  QVector3D(1, -1, 1),
+							  QVector3D(-1, 1, 1),
+							  QVector3D(1, 1, 1)}
+	  ) {
 
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   this->setMinimumSize(size);
@@ -49,13 +49,13 @@ bool VideoViewer::initShaders() {
   auto *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
   //Compile vertex shader code
   if (!vshader->compileSourceCode(VERTEX_SHADER)) {
-    return false;
+	return false;
   }
 
   auto *fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
   //Compile texture shader code
   if (!fshader->compileSourceCode(FRAGMENT_SHADER)) {
-    return false;
+	return false;
   }
 
   program.addShader(vshader);//Add vertex shader
@@ -73,10 +73,10 @@ void VideoViewer::initializeGL() {
   this->glEnable(GL_CULL_FACE);
   this->glEnable(GL_TEXTURE_2D);
   if (!this->initTextures()) {
-    qWarning("Unable to initialize textures.");
+	qWarning("Unable to initialize textures.");
   }
   if (!this->initShaders()) {
-    qWarning("Unable to initialize shaders.");
+	qWarning("Unable to initialize shaders.");
   }
 }
 
@@ -98,13 +98,20 @@ QAbstractVideoSurface *VideoViewer::surface() {
   return surface_;
 }
 
+void VideoViewer::showEvent(QShowEvent *event) {
+  QWidget::showEvent(event);
+
+  // Enforce OpenGL to render
+  this->update();
+}
+
 VideoViewer::VideoSurface::VideoSurface(VideoViewer *parent) : QAbstractVideoSurface(parent) {}
 
 bool VideoViewer::VideoSurface::present(const QVideoFrame &frame) {
   auto viewer = qobject_cast<VideoViewer *>(this->parent());
   auto texture = viewer->frame();
   if (texture == nullptr || !frame.isMapped() || !frame.isValid()) {
-    return false;
+	return false;
   }
 
   texture->setData(QOpenGLTexture::BGR, QOpenGLTexture::UInt8, frame.bits());

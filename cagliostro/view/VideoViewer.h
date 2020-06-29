@@ -26,18 +26,22 @@ class VideoViewer : public QOpenGLWidget, protected QOpenGLFunctions {
  public:
   explicit VideoViewer(const QSize &size, QWidget *parent = nullptr);
   QAbstractVideoSurface *surface();
-  inline QOpenGLTexture *frame() noexcept {
-    return texture_;
+  [[nodiscard]] inline QOpenGLTexture *frame() noexcept {
+	return texture_;
+  }
+  [[nodiscard]] inline QSize frame_size() noexcept {
+	return size_;
   }
 
  protected:
   void initializeGL() override;
   void paintGL() override;
+  void showEvent(QShowEvent *event) override;
 
  private:
   class VideoSurface : public QAbstractVideoSurface {
    public:
-    explicit VideoSurface(VideoViewer *parent);
+	explicit VideoSurface(VideoViewer *parent);
 
     bool present(const QVideoFrame &frame) override;
     bool start(const QVideoSurfaceFormat &format) override;
