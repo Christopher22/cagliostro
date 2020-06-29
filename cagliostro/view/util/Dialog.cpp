@@ -73,14 +73,20 @@ void Dialog::nextPage() {
 
   const int current_index = initialized_ ? pages_->currentIndex() : -1;
   if (current_index < pages_->count() - 1) {
-    buttons_->button(NEXT_BUTTON)->setEnabled(false);
-    emit this->enterPage(current_index + 1);
-    pages_->setCurrentIndex(current_index + 1);
+	auto *next_button = buttons_->button(NEXT_BUTTON);
+	next_button->setEnabled(false);
+	if (current_index + 2 == pages_->count()) {
+	  next_button->setText(tr("Finish"));
+	}
 
-    // Scale to best size for current page
-    pages_->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    pages_->currentWidget()->adjustSize();
-    pages_->currentWidget()->setVisible(true);
+	emit this->enterPage(current_index + 1);
+	pages_->setCurrentIndex(current_index + 1);
+
+	// Scale to best size for current page
+	auto current_widget = pages_->currentWidget();
+	current_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	current_widget->adjustSize();
+	current_widget->setVisible(true);
   } else {
     this->close();
   }
