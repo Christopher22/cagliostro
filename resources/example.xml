@@ -4,7 +4,7 @@
         <description>I solemnly swear that I'm a **Quokka** lover (and have seen the *amazing* Markdown).</description>
     </page>
     <page id="checks">
-        <description>Please provide some details about yourself:</description>
+        <title>Please provide some details about yourself:</title>
         <question id="gender">
             <description>Your gender</description>
             <choices>
@@ -15,7 +15,7 @@
     </page>
     <randomized_pages>
         <page id="video1">
-            <description>Please rate the cuteness of this Quokka:</description>
+            <title>Please rate the cuteness of this Quokka:</title>
             <content type="video" obligatory="true">quokka1.mp4</content>
             <question id="cuteness1">
                 <description>Cuteness</description>
@@ -27,7 +27,7 @@
             </question>
         </page>
         <page id="video2">
-            <description>Please rate the cuteness of this Quokka (2):</description>
+            <title>Please rate the cuteness of this Quokka (2):</title>
             <content type="video">quokka2.mp4</content>
             <question id="cuteness2">
                 <description>Cuteness</description>
