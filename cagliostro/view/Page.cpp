@@ -8,9 +8,9 @@ You should have received a copy of the GNU Affero General Public License along w
 */
 
 #include "Page.h"
-#include "VideoViewer.h"
 #include "Scale.h"
 #include "../model/content/Video.h"
+#include "util/AspectRatioLayout.h"
 
 #include <QComboBox>
 #include <QMessageBox>
@@ -21,7 +21,7 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::view {
 
 Page::Page(model::Page *page, util::Dialog *parent)
-    : util::DialogPage(parent), page_(page), question_layout_(new QFormLayout()) {
+	: util::DialogPage(parent), page_(page), question_layout_(new QFormLayout()) {
 
   // Create the layout and add the content widget, if provided
   auto *layout = new QVBoxLayout();
@@ -35,17 +35,21 @@ Page::Page(model::Page *page, util::Dialog *parent)
   description->setTextFormat(Qt::MarkdownText);
   layout->addWidget(description, 0, Qt::AlignLeft);
 
-  QWidget *renderer = this->createContentWidget(page->content());
+  VideoViewer *renderer = this->createContentWidget(page->content());
   if (renderer != nullptr) {
-    layout->addWidget(renderer);
+	// Ensure that the aspect ratio of the video renderer ist correct.
+	const auto video_size = renderer->frame_size();
+	auto *aspect_ratio = new util::AspectRatioLayout(float(video_size.width()) / float(video_size.height()));
+	aspect_ratio->addWidget(renderer);
+	layout->addLayout(aspect_ratio);
   }
 
   // Create the question layout
   for (auto *question: page->questions()) {
-    QWidget *widget = this->createQuestionWidget(question);
-    if (widget != nullptr) {
-      question_layout_->addRow(question->text(), widget);
-    }
+	QWidget *widget = this->createQuestionWidget(question);
+	if (widget != nullptr) {
+	  question_layout_->addRow(question->text(), widget);
+	}
   }
   layout->addLayout(question_layout_);
 
@@ -55,7 +59,7 @@ Page::Page(model::Page *page, util::Dialog *parent)
 QWidget *Page::createQuestionWidget(model::Question *question) noexcept {
   auto *selection = qobject_cast<model::Selection *>(question);
   if (selection == nullptr) {
-    return nullptr;
+	return nullptr;
   }
 
   auto *widget = new Scale(selection, this);
@@ -63,16 +67,16 @@ QWidget *Page::createQuestionWidget(model::Question *question) noexcept {
   return widget;
 }
 
-QWidget *Page::createContentWidget(model::content::Content *content) noexcept {
+VideoViewer *Page::createContentWidget(model::content::Content *content) noexcept {
   auto *video = qobject_cast<model::content::Video *>(content);
   if (video == nullptr) {
-    return nullptr;
+	return nullptr;
   }
 
   auto *widget = new VideoViewer(video->size(), this);
   if (!video->bind(widget->surface())) {
-    widget->deleteLater();
-    return nullptr;
+	widget->deleteLater();
+	return nullptr;
   }
 
   // Inform the widget once the content was completely played
@@ -87,12 +91,12 @@ void Page::prepare() {
   // Play the video on start
   auto *content = this->page_->content();
   if (content != nullptr) {
-    content->show();
+	content->show();
   }
 
   // If there are no questions, continue directly
   if (question_layout_->count() == 0) {
-    emit this->ready(true);
+	emit this->ready(true);
   }
 }
 
@@ -100,16 +104,16 @@ bool Page::cleanUp() {
   // Stop playing the video
   auto *content = page_->content();
   if (content != nullptr) {
-    content->hide();
+	content->hide();
   }
 
   // Save questions
   if (!page_->save()) {
-    QMessageBox::critical(this,
-                          tr("Saving failed"),
-                          tr("Logging your recent answer(s) failed. Please contact your supervisor."
-                          ));
-    return false;
+	QMessageBox::critical(this,
+						  tr("Saving failed"),
+						  tr("Logging your recent answer(s) failed. Please contact your supervisor."
+						  ));
+	return false;
   }
 
   return true;
@@ -119,18 +123,18 @@ void Page::checkReady() {
   // Check that the user have seen the content if it is obligatory
   const auto *content = page_->content();
   if (content == nullptr || !content->isObligatory() || content->isFinished()) {
-    // Check if all questions are answered
-    for (int i = 0, size = question_layout_->count(); i < size; ++i) {
-      auto item = question_layout_->itemAt(i, QFormLayout::FieldRole);
-      auto question = item != nullptr ? qobject_cast<Scale *>(item->widget()) : nullptr;
-      if (question != nullptr && !*question) {
-        // This question was not answered.
-        return;
-      }
-    }
+	// Check if all questions are answered
+	for (int i = 0, size = question_layout_->count(); i < size; ++i) {
+	  auto item = question_layout_->itemAt(i, QFormLayout::FieldRole);
+	  auto question = item != nullptr ? qobject_cast<Scale *>(item->widget()) : nullptr;
+	  if (question != nullptr && !*question) {
+		// This question was not answered.
+		return;
+	  }
+	}
 
-    // Inform the dialog that the user may continue
-    emit this->ready(true);
+	// Inform the dialog that the user may continue
+	emit this->ready(true);
   }
 }
 

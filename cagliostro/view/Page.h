@@ -10,8 +10,8 @@ You should have received a copy of the GNU Affero General Public License along w
 #ifndef CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
 #define CAGLIOSTRO_CAGLIOSTRO_VIEW_PAGE_H_
 
+#include "VideoViewer.h"
 #include "util/DialogPage.h"
-
 #include "../model/Page.h"
 #include "../model/content/Content.h"
 
@@ -30,7 +30,7 @@ class Page : public util::DialogPage {
  private:
   void checkReady();
   QWidget *createQuestionWidget(model::Question *question) noexcept;
-  QWidget *createContentWidget(model::content::Content *question) noexcept;
+  VideoViewer *createContentWidget(model::content::Content *question) noexcept;
 
   model::Page *page_;
   QFormLayout *question_layout_;
