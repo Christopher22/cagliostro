@@ -10,19 +10,29 @@ You should have received a copy of the GNU Affero General Public License along w
 import argparse
 from pathlib import Path
 
-if __name__ == "__main__":
-    args = argparse.ArgumentParser("header")
-    args.add_argument("file", type=str, help="The target file")
-    args.add_argument("header", type=str, help="The value to change the header to (in hexadecimal)")
-    args = args.parse_args()
 
-    file = Path(args.file)
+def change_header(file: Path, replacement: str) -> str:
+    """
+    Replace the header of a file.
+
+    >>> example_file = Path("example.tmp")
+    >>> with example_file.open("w+", encoding="ascii") as f: f.write("abcdefg")
+    7
+    >>> change_header(example_file, "0123")
+    '30313233>61626364'
+    >>> with example_file.open("r", encoding="ascii") as f: print(f.read())
+    0123efg
+
+
+    :param file: The path to the file.
+    :param replacement_hex: The replacement as string. The bytes, once transformed to ASCII, are utilized.
+    :return: A replacement definition suitable for cagliostro's "header" attribute.
+    """
+
     if not file.is_file():
         raise ValueError("Invalid file")
-    elif len(args.header) < 2 or len(args.header) % 2 != 0:
-        raise ValueError("Invalid Hex input")
 
-    new_header = bytearray(int(args.header[i:i + 2], 8) for i in range(0, len(args.header), 2))
+    new_header = replacement.encode(encoding="ascii", errors="throw")
     with file.open('r+b') as f:
         old_header = f.read(len(new_header))
         if len(old_header) != len(new_header):
@@ -31,4 +41,18 @@ if __name__ == "__main__":
         f.seek(0)
         f.write(new_header)
 
-    print(f"{new_header.hex()}>{old_header.hex()}")
+    return f"{new_header.hex()}>{old_header.hex()}"
+
+
+if __name__ == "__main__":
+    args = argparse.ArgumentParser("header")
+    args.add_argument("file", type=str, help="The target file")
+    args.add_argument("header", type=str, help="The value as ASCII string for changing the header")
+    args = args.parse_args()
+
+    try:
+        value = change_header(Path(args.file), args.header)
+        print(value)
+    except ValueError as ex:
+        print(ex)
+        exit(1)
