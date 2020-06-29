@@ -31,20 +31,31 @@ conan_check(REQUIRED)
 
 # Specify the dependencies
 set(cagliostro_dependencies opencv/4.1.1@conan/stable cryptopp/8.2.0@bincrafters/stable)
-set(cagliostro_options opencv:ffmpeg=False opencv:protobuf=False opencv:freetype=False opencv:harfbuzz=False opencv:eigen=False opencv:glog=False opencv:gflags=False opencv:quirc=False)
-conan_cmake_run(REQUIRES ${cagliostro_dependencies} OPTIONS ${cagliostro_options} BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS BUILD missing ENV PATH=${cagliostro_cmake} CONAN_CMAKE_PROGRAM=${CMAKE_COMMAND})
 
-# Define the required components
+# Specify the translations
+set(cagliostro_translations "translations/cagliostro_de.ts")
+
+# Specify conan options
+set(cagliostro_options opencv:ffmpeg=False opencv:protobuf=False opencv:freetype=False opencv:harfbuzz=False opencv:eigen=False opencv:glog=False opencv:gflags=False opencv:quirc=False)
+
+# Specify the required components
 set(cagliostro_components Widgets Multimedia MultimediaWidgets)
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     LIST(APPEND cagliostro_components Test)
 endif ()
-find_package(Qt5 COMPONENTS ${cagliostro_components} REQUIRED)
+find_package(Qt5 COMPONENTS ${cagliostro_components} LinguistTools REQUIRED)
 list(TRANSFORM cagliostro_components PREPEND "Qt5::")
 
+# Code files
 set(src_model cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/model/Config.cpp cagliostro/model/Config.h cagliostro/model/content/Resource.cpp cagliostro/model/content/Resource.h cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h cagliostro/model/Responses.cpp cagliostro/model/Responses.h cagliostro/model/content/postprocessors/Delete.cpp cagliostro/model/content/postprocessors/Delete.h cagliostro/model/Source.cpp cagliostro/model/Source.h)
 set(src_view cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/view/ConfigPage.cpp cagliostro/view/ConfigPage.h cagliostro/view/util/FileSelector.cpp cagliostro/view/util/FileSelector.h cagliostro/view/util/Dialog.cpp cagliostro/view/util/Dialog.h cagliostro/view/util/DialogPage.cpp cagliostro/view/util/DialogPage.h cagliostro/view/util/ButtonGroup.cpp cagliostro/view/util/ButtonGroup.h cagliostro/view/util/AspectRatioLayout.cpp cagliostro/view/util/AspectRatioLayout.h)
 
+# Prepare translations
+qt5_add_translation(cagliostro_compiled_translations ${cagliostro_translations})
+MESSAGE(STATUS "Using these translations: ${cagliostro_translations} --> ${cagliostro_compiled_translations}")
+configure_file(${cagliostro_compiled_translations} "${CMAKE_BINARY_DIR}/translations" COPYONLY)
+
+conan_cmake_run(REQUIRES ${cagliostro_dependencies} OPTIONS ${cagliostro_options} BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS BUILD missing ENV PATH=${cagliostro_cmake} CONAN_CMAKE_PROGRAM=${CMAKE_COMMAND})
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     MESSAGE(STATUS "Build tests")
     enable_testing()
@@ -57,7 +68,7 @@ else ()
     elseif (APPLE)
         set(custom_flag MACOSX_BUNDLE)
     endif ()
-    add_executable(cagliostro ${custom_flag} cagliostro/main.cpp ${src_model} ${src_view})
+    add_executable(cagliostro ${custom_flag} ${cagliostro_compiled_translations} cagliostro/main.cpp ${src_model} ${src_view})
 endif ()
 
 # Build the crypto helper optional

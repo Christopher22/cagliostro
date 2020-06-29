@@ -13,7 +13,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #include "view/Wizard.h"
 
 #include <QApplication>
-
+#include <QTranslator>
 #include <iostream>
 
 using namespace cagliostro;
@@ -25,6 +25,12 @@ int main(int argc, char *argv[]) {
   QApplication::setOrganizationName("Christopher Gundler");
   QApplication::setApplicationName("cagliostro");
   QApplication::setQuitOnLastWindowClosed(true);
+
+  // Try to load translations on runtime
+  QTranslator translator;
+  if (translator.load(QLocale(), QLatin1String("cagliostro"), QLatin1String("_"), QLatin1String("translations"))) {
+	QCoreApplication::installTranslator(&translator);
+  }
 
   // Run the GUI
   (new view::Wizard())->show();
