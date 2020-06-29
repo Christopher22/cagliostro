@@ -29,6 +29,8 @@ class Dialog : public QWidget {
   bool setPageReady(int id, bool ready = true);
   bool abortLeave(int id);
   ButtonGroup *buttons() noexcept;
+  [[nodiscard]] QSize sizeHint() const override;
+  [[nodiscard]] QSize minimumSizeHint() const override;
 
  protected:
   virtual void prepare();

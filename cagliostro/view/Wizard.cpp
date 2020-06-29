@@ -13,26 +13,29 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include <QMessageBox>
 #include <QApplication>
+#include <QScreen>
 
 namespace cagliostro::view {
 
 Wizard::Wizard(QWidget *parent) : util::Dialog(parent), wizard_(nullptr) {
   // Set the general config
   this->setWindowTitle(tr("Cagliostro"));
-
   // The experiment should be shown before any other window
   this->setWindowFlags(Qt::WindowStaysOnTopHint);
+  // Limit window size to maximal size of the primary screen
+  this->setMaximumSize(QApplication::screenAt(this->geometry().center())->geometry().size());
 
   auto *config = new ConfigPage(this);
   QObject::connect(config, &ConfigPage::modelLoaded, this, &Wizard::createView);
   QObject::connect(this, &Wizard::enterPage, this, [this](int id) {
-    if (id == 1) {
-      auto font = QApplication::font();
-      font.setPointSize(wizard_->fontSize());
-      QApplication::setFont(font);
+	if (id == 1) {
+	  auto font = QApplication::font();
+	  font.setPointSize(wizard_->fontSize());
+	  QApplication::setFont(font);
 
-      this->showFullScreen();
-    }
+	  this->setGeometry(QApplication::screenAt(this->geometry().center())->availableGeometry());
+	  this->showMaximized();
+	}
   });
 }
 

@@ -16,11 +16,13 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::view::util {
 
 Dialog::Dialog(QWidget *parent) :
-    QWidget(parent),
-    pages_(new QStackedWidget(this)),
-    buttons_(nullptr),
-    abort_(false),
-    initialized_(false) {
+	QWidget(parent, Qt::Window | Qt::FramelessWindowHint),
+	pages_(new QStackedWidget(this)),
+	buttons_(nullptr),
+	abort_(false),
+	initialized_(false) {
+
+  pages_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   auto next_button = new QPushButton(tr("Next"));
   next_button->setDisabled(true);
@@ -116,10 +118,20 @@ void Dialog::prepare() {
 
 void Dialog::keyPressEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Escape) {
-    QCoreApplication::quit();
+	QCoreApplication::quit();
   } else {
-    QWidget::keyPressEvent(event);
+	QWidget::keyPressEvent(event);
   }
+}
+
+QSize Dialog::sizeHint() const {
+  const auto *current_widget = pages_->currentWidget();
+  return current_widget != nullptr ? current_widget->sizeHint() : QWidget::sizeHint();
+}
+
+QSize Dialog::minimumSizeHint() const {
+  const auto *current_widget = pages_->currentWidget();
+  return current_widget != nullptr ? current_widget->minimumSizeHint() : QWidget::minimumSizeHint();
 }
 
 }

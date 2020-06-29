@@ -28,12 +28,16 @@ Page::Page(model::Page *page, util::Dialog *parent)
   layout->setAlignment(Qt::AlignCenter);
 
   auto title = new QLabel(page->title(), this);
+  title->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   title->setTextFormat(Qt::MarkdownText);
-  layout->addWidget(title, 0, Qt::AlignLeft);
+  title->setWordWrap(false);
+  layout->addWidget(title, 0, Qt::AlignCenter);
 
   auto description = new QLabel(page->description(), this);
+  description->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   description->setTextFormat(Qt::MarkdownText);
-  layout->addWidget(description, 0, Qt::AlignLeft);
+  description->setWordWrap(true);
+  layout->addWidget(description, 0, Qt::AlignCenter);
 
   VideoViewer *renderer = this->createContentWidget(page->content());
   if (renderer != nullptr) {
