@@ -12,6 +12,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QFile>
 #include <QBuffer>
 
+#ifndef NO_CRYPTO
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/secblock.h>
 #include <cryptopp/aes.h>
@@ -21,6 +22,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <cryptopp/filters.h>
 #include <cryptopp/zinflate.h>
 #include <cryptopp/zdeflate.h>
+#endif
 
 namespace cagliostro::model {
 
@@ -64,6 +66,7 @@ bool Source::isCagliostroHeader(const QByteArray &header) noexcept {
 }
 
 QIODevice *Source::decrypt(QIODevice::OpenMode mode) {
+#ifndef NO_CRYPTO
   return Source::generate_key_iv(password_,
 								 [this, mode](unsigned char *key,
 											  unsigned char *iv,
@@ -98,9 +101,13 @@ QIODevice *Source::decrypt(QIODevice::OpenMode mode) {
 									 return nullptr;
 								   }
 								 });
+#else
+  return nullptr;
+#endif
 }
 
 QByteArray Source::encrypt(QIODevice *source, QStringView password) {
+#ifndef NO_CRYPTO
   if (source == nullptr || !source->isOpen()) {
 	return QByteArray();
   }
@@ -138,6 +145,9 @@ QByteArray Source::encrypt(QIODevice *source, QStringView password) {
   });
 
   return encrypted_data;
+#else
+  return QByteArray();
+#endif
 }
 
 QIODevice *Source::generate_key_iv(const QByteArray &password,
@@ -145,6 +155,7 @@ QIODevice *Source::generate_key_iv(const QByteArray &password,
 															 unsigned char *,
 															 unsigned int)> callback,
 								   unsigned int iterations) {
+#ifndef NO_CRYPTO
   CryptoPP::SecByteBlock derived_key_iv(32);
   CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256> key_generator;
   key_generator.DeriveKey(derived_key_iv.data(),
@@ -157,6 +168,9 @@ QIODevice *Source::generate_key_iv(const QByteArray &password,
 						  iterations);
 
   return callback(derived_key_iv.data(), derived_key_iv.data() + 16, 16);
+#else
+  return nullptr;
+#endif
 }
 
 }

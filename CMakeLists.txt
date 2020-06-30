@@ -15,7 +15,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-option(BUILD_CRYPTO_HELPER "Build the crypto helper beside the main executable" ON)
+option(BUILD_CRYPTO "Build cagliostro with support for encrypted config files" ON)
 
 # Get the path to current CMake
 get_filename_component(cagliostro_cmake ${CMAKE_COMMAND} DIRECTORY)
@@ -29,8 +29,11 @@ endif ()
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 conan_check(REQUIRED)
 
-# Specify the dependencies
-set(cagliostro_dependencies opencv/4.1.1@conan/stable cryptopp/8.2.0@bincrafters/stable)
+# Specify the dependencies and require cryptopp only if it is needed
+set(cagliostro_dependencies opencv/4.1.1@conan/stable)
+if (BUILD_CRYPTO)
+    list(APPEND cagliostro_dependencies "cryptopp/8.2.0@bincrafters/stable")
+endif ()
 
 # Specify the translations
 set(cagliostro_translations "translations/cagliostro_de.ts")
@@ -72,13 +75,17 @@ else ()
 endif ()
 
 # Build the crypto helper optional
-if (BUILD_CRYPTO_HELPER)
+if (BUILD_CRYPTO)
+    MESSAGE(STATUS "Building cagliostro WITH support for encrypted files")
     add_executable(cagliostro_crypto cagliostro/main_crypto.cpp ${src_model})
     target_link_libraries(cagliostro_crypto ${cagliostro_components} CONAN_PKG::opencv CONAN_PKG::cryptopp)
+    target_link_libraries(cagliostro ${cagliostro_components} CONAN_PKG::opencv CONAN_PKG::cryptopp)
     # We can rely on the deployment of the main executeable
+else ()
+    MESSAGE(STATUS "Building cagliostro WITHOUT support for encrypted files")
+    target_link_libraries(cagliostro ${cagliostro_components} CONAN_PKG::opencv)
+    target_compile_definitions(cagliostro PUBLIC NO_CRYPTO)
 endif ()
-
-target_link_libraries(cagliostro ${cagliostro_components} CONAN_PKG::opencv CONAN_PKG::cryptopp)
 
 get_target_property(qmake_executable Qt5::qmake IMPORTED_LOCATION)
 get_filename_component(qt_bin_dir "${qmake_executable}" DIRECTORY)
