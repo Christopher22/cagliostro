@@ -61,4 +61,15 @@ QString Selection::answer() const noexcept {
   return this->isAnswered() ? answer_.data().toString() : "";
 }
 
+void Selection::setLegend(const QString &legend, bool left) {
+  if (left) {
+	legend_left_ = legend;
+  } else {
+	legend_right_ = legend;
+  }
+}
+
+QPair<QString, QString> Selection::legend() const {
+  return QPair<QString, QString>(legend_left_, legend_right_);
+}
 }

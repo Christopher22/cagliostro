@@ -1,13 +1,14 @@
-<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
-           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:element name="title" type="xs:string"/>
     <xs:element name="description" type="xs:string"/>
     <xs:element name="choice" type="xs:string"/>
     <xs:element name="choices">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="choice" maxOccurs="unbounded" minOccurs="1"/>
+                <xs:element ref="choice" maxOccurs="unbounded"/>
             </xs:sequence>
+            <xs:attribute type="xs:string" name="low" default=""/>
+            <xs:attribute type="xs:string" name="high" default=""/>
         </xs:complexType>
     </xs:element>
     <xs:element name="question">
@@ -23,10 +24,10 @@
         <xs:complexType>
             <xs:simpleContent>
                 <xs:extension base="xs:string">
-                    <xs:attribute type="xs:string" name="type" use="optional" default="video"/>
-                    <xs:attribute type="xs:string" name="header" use="optional" default=""/>
-                    <xs:attribute type="xs:boolean" name="obligatory" use="optional" default="false"/>
-                    <xs:attribute type="xs:boolean" name="clean_up" use="optional" default="false"/>
+                    <xs:attribute type="xs:string" name="type" default="video"/>
+                    <xs:attribute type="xs:string" name="header" default=""/>
+                    <xs:attribute type="xs:boolean" name="obligatory" default="false"/>
+                    <xs:attribute type="xs:boolean" name="clean_up" default="false"/>
                 </xs:extension>
             </xs:simpleContent>
         </xs:complexType>
@@ -34,27 +35,27 @@
     <xs:element name="page">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="title" minOccurs="0" maxOccurs="1"/>
-                <xs:element ref="description" minOccurs="0" maxOccurs="1"/>
-                <xs:element ref="content" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="title" minOccurs="0"/>
+                <xs:element ref="description" minOccurs="0"/>
+                <xs:element ref="content" minOccurs="0"/>
                 <xs:element ref="question" minOccurs="0"/>
             </xs:sequence>
             <xs:attribute type="xs:string" name="id" use="required"/>
-            <xs:attribute type="xs:string" name="next_button" use="optional" default="Next"/>
+            <xs:attribute type="xs:string" name="next_button" default="Next"/>
         </xs:complexType>
     </xs:element>
     <xs:element name="randomized_pages">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="page" maxOccurs="unbounded" minOccurs="1"/>
+                <xs:element ref="page" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
     <xs:element name="cagliostro">
         <xs:complexType>
-            <xs:choice maxOccurs="unbounded" minOccurs="1">
-                <xs:element ref="page" maxOccurs="unbounded" minOccurs="1"/>
-                <xs:element ref="randomized_pages" maxOccurs="unbounded" minOccurs="1"/>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element ref="page" maxOccurs="unbounded"/>
+                <xs:element ref="randomized_pages" maxOccurs="unbounded"/>
             </xs:choice>
             <xs:attribute type="xs:string" name="title" default="Cagliostro"/>
             <xs:attribute type="xs:string" name="result" default="result.tsv"/>

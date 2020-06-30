@@ -233,13 +233,16 @@ cagliostro::model::Question *cagliostro::model::Config::parse(cagliostro::model:
 	  }
 	  question->setText(xml_.readElementText());
 	} else if (this->parse("choices", [&]() {
-	  if (xml_.name() == "choice") {
+	  if (xml_.name() == "choices") {
+		question->setLegend(attribute("low"), true);
+		question->setLegend(attribute("high"), false);
+	  } else if (xml_.name() == "choice") {
 		elements.append(xml_.readElementText());
 	  } else {
 		emit this->error(Error::ParserError,
 						 tr("Unknown element '%1' found in choices for question %2.").arg(xml_.name(), question_num));
 	  }
-	}, false)) {
+	}, true)) {
 	  if (elements.empty()) {
 		emit this->error(Error::ParserError, tr("Choices of question %1 are empty.").arg(question_num));
 		return;

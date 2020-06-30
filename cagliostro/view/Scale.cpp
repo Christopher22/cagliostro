@@ -29,14 +29,27 @@ Scale::Scale(model::Selection *selection, QWidget *parent) : QWidget(parent), se
   // Create the layout and fill it both with labels and buttons
   auto *layout = new QGridLayout(this);
   const auto values = (*selection_)->stringList();
-  for (int i = 0, size = values.size(); i < size; ++i) {
+  auto legend = selection_->legend();
+  int start_index = 0;
+
+  if (!legend.first.isEmpty()) {
+	layout->addWidget(new QLabel(legend.first, this), 0, 0, Qt::AlignRight | Qt::AlignVCenter);
+	start_index = 1;
+  }
+
+  for (int i = start_index, size = values.size() + start_index; i < size; ++i) {
 	auto *button = new QRadioButton(this);
-	auto *label = new QLabel(values[i], this);
+	auto *label = new QLabel(values[i - start_index], this);
 	layout->addWidget(button, 0, i, Qt::AlignCenter);
 	layout->addWidget(label, 1, i, Qt::AlignCenter);
-    buttons->addButton(button, i);
-    label->setBuddy(button);
+	buttons->addButton(button, i);
+	label->setBuddy(button);
   }
+
+  if (!legend.second.isEmpty()) {
+	layout->addWidget(new QLabel(legend.second, this), 0, layout->columnCount(), Qt::AlignLeft | Qt::AlignVCenter);
+  }
+
   this->setLayout(layout);
 }
 

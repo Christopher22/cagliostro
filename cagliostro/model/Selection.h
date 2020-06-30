@@ -28,9 +28,13 @@ class Selection : public Question {
   bool setAnswer(const QString &answer) override;
   bool setAnswer(int answer_index);
 
+  [[nodiscard]] QPair<QString, QString> legend() const;
+  void setLegend(const QString &legend, bool left);
+
  private:
   QStringListModel *choices_;
   QPersistentModelIndex answer_;
+  QString legend_left_, legend_right_;
 };
 }
 
