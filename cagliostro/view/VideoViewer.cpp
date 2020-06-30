@@ -8,6 +8,7 @@ You should have received a copy of the GNU Affero General Public License along w
 */
 
 #include "VideoViewer.h"
+#include "util/VideoSurface.h"
 
 #include <QPainter>
 #include <QPaintEvent>
@@ -16,7 +17,6 @@ namespace cagliostro::view {
 
 VideoViewer::VideoViewer(const QSize &size, QWidget *parent)
 	: QOpenGLWidget(parent),
-	  surface_(new VideoSurface(this)),
 	  size_(size),
 	  texture_(nullptr),
 	  texture_coordinates_({
@@ -32,6 +32,11 @@ VideoViewer::VideoViewer(const QSize &size, QWidget *parent)
 	  ) {
 
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  // Create the surface
+  auto surface = new util::VideoSurface(this);
+  QObject::connect(surface, &util::VideoSurface::newFrame, this, qOverload<>(&VideoViewer::update));
+  surface_ = surface;
 }
 
 bool VideoViewer::initTextures() {
@@ -98,40 +103,19 @@ QAbstractVideoSurface *VideoViewer::surface() {
 }
 
 void VideoViewer::showEvent(QShowEvent *event) {
-  QWidget::showEvent(event);
+  QOpenGLWidget::showEvent(event);
 
   // Enforce OpenGL to render
   this->update();
+
+  // "Bugfix" required: For some stange reasons, Qt needs a mouse move or keystroke to continue. Fake it.
+  auto position = QCursor::pos();
+  QCursor::setPos(0, 0);
+  QCursor::setPos(position);
 }
 
 QSize VideoViewer::sizeHint() const {
   return size_;
-}
-
-VideoViewer::VideoSurface::VideoSurface(VideoViewer *parent) : QAbstractVideoSurface(parent) {}
-
-bool VideoViewer::VideoSurface::present(const QVideoFrame &frame) {
-  auto viewer = qobject_cast<VideoViewer *>(this->parent());
-  auto texture = viewer->frame();
-  if (texture == nullptr || !frame.isMapped() || !frame.isValid()) {
-	return false;
-  }
-
-  texture->setData(QOpenGLTexture::BGR, QOpenGLTexture::UInt8, frame.bits());
-  viewer->update();
-  return true;
-}
-
-QList<QVideoFrame::PixelFormat> VideoViewer::VideoSurface::supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const {
-  return {QVideoFrame::Format_BGR24};
-}
-
-bool VideoViewer::VideoSurface::start(const QVideoSurfaceFormat &format) {
-  return QAbstractVideoSurface::start(format);
-}
-
-bool VideoViewer::VideoSurface::isFormatSupported(const QVideoSurfaceFormat &format) const {
-  return QAbstractVideoSurface::isFormatSupported(format);
 }
 
 }

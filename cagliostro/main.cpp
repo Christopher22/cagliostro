@@ -14,11 +14,18 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include <QApplication>
 #include <QTranslator>
+#include <QSurfaceFormat>
+
 #include <iostream>
 
 using namespace cagliostro;
 
 int main(int argc, char *argv[]) {
+  // OpenGL config
+  auto format = QSurfaceFormat::defaultFormat();
+  format.setSwapInterval(0);
+  QSurfaceFormat::setDefaultFormat(format);
+
   QApplication app(argc, argv);
 
   // Set some meta data

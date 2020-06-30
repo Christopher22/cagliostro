@@ -17,6 +17,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QImage>
+#include <QAbstractVideoSurface>
 
 namespace cagliostro::view {
 
@@ -40,20 +41,10 @@ class VideoViewer : public QOpenGLWidget, protected QOpenGLFunctions {
   void showEvent(QShowEvent *event) override;
 
  private:
-  class VideoSurface : public QAbstractVideoSurface {
-   public:
-	explicit VideoSurface(VideoViewer *parent);
-
-    bool present(const QVideoFrame &frame) override;
-    bool start(const QVideoSurfaceFormat &format) override;
-    [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
-    [[nodiscard]] bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
-  };
-
   bool initTextures();
   bool initShaders();
 
-  VideoSurface *surface_;
+  QAbstractVideoSurface *surface_;
   QVector<QVector3D> vertex_coordinates_;
   QVector<QVector2D> texture_coordinates_;
   QOpenGLShaderProgram program;
