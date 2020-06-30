@@ -54,9 +54,9 @@ set(src_model cagliostro/model/Question.cpp cagliostro/model/Question.h cagliost
 set(src_view cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/view/ConfigPage.cpp cagliostro/view/ConfigPage.h cagliostro/view/util/FileSelector.cpp cagliostro/view/util/FileSelector.h cagliostro/view/util/Dialog.cpp cagliostro/view/util/Dialog.h cagliostro/view/util/DialogPage.cpp cagliostro/view/util/DialogPage.h cagliostro/view/util/ButtonGroup.cpp cagliostro/view/util/ButtonGroup.h cagliostro/view/util/AspectRatioLayout.cpp cagliostro/view/util/AspectRatioLayout.h)
 
 # Prepare translations
+set_source_files_properties(${cagliostro_translations} PROPERTIES OUTPUT_LOCATION "${CMAKE_BINARY_DIR}/translations")
 qt5_add_translation(cagliostro_compiled_translations ${cagliostro_translations})
 MESSAGE(STATUS "Using these translations: ${cagliostro_translations} --> ${cagliostro_compiled_translations}")
-configure_file(${cagliostro_compiled_translations} "${CMAKE_BINARY_DIR}/translations" COPYONLY)
 
 conan_cmake_run(REQUIRES ${cagliostro_dependencies} OPTIONS ${cagliostro_options} BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS BUILD missing ENV PATH=${cagliostro_cmake} CONAN_CMAKE_PROGRAM=${CMAKE_COMMAND})
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
