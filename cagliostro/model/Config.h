@@ -51,7 +51,7 @@ class Config : public QObject {
 
   template<typename T = QString>
   [[nodiscard]] T attribute(const char *name, T &&default_value = {}) const noexcept {
-    static_assert(false, "This type is not supported");
+    static_assert(sizeof(T) == 0, "This type is not supported");
   }
 
   template<>
