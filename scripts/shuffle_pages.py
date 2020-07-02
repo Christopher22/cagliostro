@@ -57,7 +57,7 @@ def shuffle_pages(input_file: str, output_file: str, filter_include: str = "*",
     elif output_file.exists():
         return ResultCode.OutputInvalid
 
-    with input_file.open("r") as input_file, output_file.open("wb+") as output_file:
+    with input_file.open("r", encoding="utf-8") as input_file, output_file.open("wb+") as output_file:
         output = Xml.parse(input_file)
         input_file.seek(0)
         input_root = Xml.parse(input_file).getroot()
