@@ -14,6 +14,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from random import Random
 from typing import Optional
+import copy
 
 
 class ResultCode(IntEnum):
@@ -26,6 +27,32 @@ class ResultCode(IntEnum):
 
     def __bool__(self):
         return self.value == 0
+
+
+def shuffle_tree(input_document: Xml, filter_include: str, seed: Optional[int]) -> Xml:
+    """
+    Copy an input document and shuffle its pages.
+    :param input_document: The input document.
+    :param filter_include: A filter expression shuffling only those pages where the id matches the pattern.
+    :param seed: An optional seed for the random generator.
+    :return: A shuffled copy.
+    """
+    output_document = copy.deepcopy(input_document)
+    input_root = input_document.getroot()
+    output_root = output_document.getroot()
+
+    indices = [
+        i for i, child in enumerate(input_root.findall('*'))
+        if child.tag == "page" and fnmatch(child.attrib.get("id", ""), filter_include)
+    ]
+    new_indices = indices[:]
+
+    rng = Random(seed)
+    rng.shuffle(new_indices)
+    for old, new in zip(indices, new_indices):
+        output_root[new] = input_root[old]
+
+    return output_document
 
 
 def shuffle_pages(input_file: str, output_file: str, filter_include: str = "*",
@@ -58,25 +85,9 @@ def shuffle_pages(input_file: str, output_file: str, filter_include: str = "*",
         return ResultCode.OutputInvalid
 
     with input_file.open("r", encoding="utf-8") as input_file, output_file.open("wb+") as output_file:
-        output = Xml.parse(input_file)
-        input_file.seek(0)
-        input_root = Xml.parse(input_file).getroot()
-        output_root = output.getroot()
-        if input_root.tag != "cagliostro":
-            return ResultCode.InputInvalid
-
-        indices = [
-            i for i, child in enumerate(input_root.findall('*'))
-            if child.tag == "page" and fnmatch(child.attrib.get("id", ""), filter_include)
-        ]
-        new_indices = indices[:]
-
-        rng = Random(seed)
-        rng.shuffle(new_indices)
-        for old, new in zip(indices, new_indices):
-            output_root[new] = input_root[old]
-
-        output.write(output_file)
+        input_document = Xml.parse(input_file)
+        output_document = shuffle_tree(input_document, filter_include=filter_include, seed=seed)
+        output_document.write(output_file)
         return ResultCode.Success
 
 

@@ -8,6 +8,8 @@ import random
 import string
 from enum import IntEnum
 
+from shuffle_pages import shuffle_tree
+
 
 class ResultCode(IntEnum):
     """
@@ -51,26 +53,31 @@ class ConfigFile:
         self.file = new_file
 
     @staticmethod
-    def create(template: Element, output_dir: Path) -> "ConfigFile":
+    def create(template: Xml, output_dir: Path, filter_include: str) -> "ConfigFile":
         """
         Create a new Cagliostro file from a parse template.
         :param template: A parsed Cagliostro XML element.
         :param output_dir: The directory where all the generated files are put in.
+        :param filter_include: A filter expression shuffling only those pages where the id matches the pattern.
         :return: A wrapper object.
         """
 
+        shuffled_template = shuffle_tree(template, filter_include=filter_include, seed=None)
+        root = shuffled_template.getroot()
+
         subject_id = uuid.uuid4()
-        template.attrib["participant"] = str(subject_id)
-        template.attrib["result"] = f"{subject_id}.result"
+        root.attrib["participant"] = str(subject_id)
+        root.attrib["result"] = f"{subject_id}.result"
 
         output_file = Path(output_dir, f"{subject_id}.cagliostro")
-        output_file.write_bytes(Xml.tostring(template))
+        with output_file.open("wb+") as f:
+            shuffled_template.write(f)
 
         return ConfigFile(subject=str(subject_id), file=output_file)
 
 
 def create_batch(template: Path, crypto_path: Path, output: Path, num_subjects: int,
-                 password_length: int) -> ResultCode:
+                 password_length: int, filter_include: str) -> ResultCode:
     """
     Create Cagliostro config files batchwise.
     :param template: The path to the Cagliostro file being a template.
@@ -78,6 +85,7 @@ def create_batch(template: Path, crypto_path: Path, output: Path, num_subjects: 
     :param output: The directory where all the generated files are put in.
     :param num_subjects: The number of subjects.
     :param password_length: The length of the password.
+    :param filter_include: A filter expression shuffling only those pages where the id matches the pattern.
     :return: A code describing if the operation was successful.
     """
 
@@ -88,8 +96,7 @@ def create_batch(template: Path, crypto_path: Path, output: Path, num_subjects: 
     try:
         with template.open("rb") as f:
             template = Xml.parse(f)
-            root = template.getroot()
-            subjects = [ConfigFile.create(root, output) for _ in range(num_subjects)]
+            subjects = [ConfigFile.create(template, output, filter_include=filter_include) for _ in range(num_subjects)]
     except IOError:
         return ResultCode.IOError
     except Xml.ParseError:
@@ -116,6 +123,8 @@ if __name__ == '__main__':
     parser.add_argument("output_dir", type=str, help="The directory which will contain the generated files")
     parser.add_argument("--num_subjects", type=int, default=3, help="The number of subjects")
     parser.add_argument("--password_length", type=int, default=5, help="The length of the password")
+    parser.add_argument("--include_pages", type=str, default="*",
+                        help="Expression for shuffling only those pages where the id matches the pattern.")
     args = parser.parse_args()
 
     result = create_batch(
@@ -123,7 +132,8 @@ if __name__ == '__main__':
         crypto_path=Path(args.crypto_tool),
         output=Path(args.output_dir),
         num_subjects=args.num_subjects,
-        password_length=args.password_length
+        password_length=args.password_length,
+        filter_include=args.include_pages
     )
     if not result:
         parser.exit(result.value)
