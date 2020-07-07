@@ -25,7 +25,7 @@ def change_header(file: Path, replacement: str) -> str:
 
 
     :param file: The path to the file.
-    :param replacement_hex: The replacement as string. The bytes, once transformed to ASCII, are utilized.
+    :param replacement: The replacement as string. The bytes, once transformed to ASCII, are utilized.
     :return: A replacement definition suitable for cagliostro's "header" attribute.
     """
 
