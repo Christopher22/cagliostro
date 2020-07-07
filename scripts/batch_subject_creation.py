@@ -1,12 +1,11 @@
-import xml.etree.ElementTree as Xml
-from xml.etree.ElementTree import Element
-from dataclasses import dataclass
-from pathlib import Path
-import uuid
-import subprocess
 import random
 import string
+import subprocess
+import uuid
+import xml.etree.ElementTree as Xml
+from dataclasses import dataclass
 from enum import IntEnum
+from pathlib import Path
 
 from shuffle_pages import shuffle_tree
 
@@ -65,15 +64,15 @@ class ConfigFile:
         shuffled_template = shuffle_tree(template, filter_include=filter_include, seed=None)
         root = shuffled_template.getroot()
 
-        subject_id = uuid.uuid4()
-        root.attrib["participant"] = str(subject_id)
+        subject_id = str(uuid.uuid4())[:4]
+        root.attrib["participant"] = subject_id
         root.attrib["result"] = f"{subject_id}.result"
 
         output_file = Path(output_dir, f"{subject_id}.cagliostro")
         with output_file.open("wb+") as f:
             shuffled_template.write(f)
 
-        return ConfigFile(subject=str(subject_id), file=output_file)
+        return ConfigFile(subject=subject_id, file=output_file)
 
 
 def create_batch(template: Path, crypto_path: Path, output: Path, num_subjects: int,
