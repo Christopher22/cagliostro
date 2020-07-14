@@ -53,4 +53,8 @@ Such a file may be understood as a "master file" or a template. For each subject
 3. Optionally, randomize the order of pages. Using the provided utility script, such a command may look like `python scripts/shuffle_pages.py TEMPLATE_FILE.cagliostro SUBJECT_FILE.cagliostro`
 4. Optionally, encrypt the file. Using the compiled crypto utility, such a command may look like `cagliostro_crypto[.exe] SUBJECT_FILE.cagliostro ENCRYPTED_SUBJECT_FILE.cagliostro PASSWORD`
 
+Alternatively, when all subjects share the same media files with modified headers, the experimenter may:
+1. Replace all headers automatically with a command like `python scripts/replace_all_headers.py TEMPLATE`
+2. Use the batch processing script to create user ids, shuffle pages on a user base, and encrypt the files for the subjects. Such a command may look like `python scripts/batch_subject_creation.py TEMPLATE PATH_TO_CRYPTO_TOOL OUTPUT_DIR --num_subjects 5 --password_length 5`.
+
 This file may than be distributed to the subject. If both the stimuli, the config file and the the executable are shared all together, the participant does not have to select such a file manually.
