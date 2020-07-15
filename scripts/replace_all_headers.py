@@ -28,7 +28,7 @@ def change_all_headers(cagliostro_config: Path, length: int) -> None:
         document = Xml.parse(input_file)
         for page in document.getroot().findall('page'):
             content = page.find('content')
-            if content is None or ':' in content.text:
+            if content is None or ':' in content.text or 'header' in content.attrib:
                 continue
 
             # Extract path to file
