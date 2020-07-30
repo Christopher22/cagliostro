@@ -17,12 +17,10 @@ namespace cagliostro::view::util {
 
 Dialog::Dialog(QWidget *parent) :
 	QWidget(parent, Qt::Window | Qt::FramelessWindowHint),
-	pages_(new QStackedWidget(this)),
+	pages_(new QStackedLayout()),
 	buttons_(nullptr),
 	abort_(false),
 	initialized_(false) {
-
-  pages_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   auto next_button = new QPushButton(tr("Next"));
   next_button->setDisabled(true);
@@ -32,7 +30,7 @@ Dialog::Dialog(QWidget *parent) :
   buttons_ = new ButtonGroup({next_button}, this);
 
   auto *layout = new QVBoxLayout();
-  layout->addWidget(pages_);
+  layout->addLayout(pages_);
   layout->addWidget(buttons_);
   this->setLayout(layout);
 }
@@ -43,7 +41,7 @@ ButtonGroup *Dialog::buttons() noexcept {
 
 int Dialog::registerPage(QWidget *widget) {
   if (widget == nullptr) {
-    return -1;
+	return -1;
   }
 
   widget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -54,7 +52,7 @@ int Dialog::registerPage(QWidget *widget) {
 bool Dialog::setPageReady(int id, bool ready) {
   const int current_index = pages_->currentIndex();
   if (id != current_index && id != current_index + 1) {
-    return false;
+	return false;
   }
 
   auto button = buttons_->button(NEXT_BUTTON);
@@ -64,13 +62,13 @@ bool Dialog::setPageReady(int id, bool ready) {
 
 void Dialog::nextPage() {
   if (initialized_) {
-    emit this->leavePage(pages_->currentIndex());
+	emit this->leavePage(pages_->currentIndex());
   }
 
   // Allow the page after being notified to abort leaving.
   if (abort_) {
-    abort_ = false;
-    return;
+	abort_ = false;
+	return;
   }
 
   const int current_index = initialized_ ? pages_->currentIndex() : -1;
@@ -88,11 +86,11 @@ void Dialog::nextPage() {
 	auto current_widget = pages_->currentWidget();
 	current_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	current_widget->adjustSize();
-	current_widget->setVisible(true);
+	current_widget->show();
 
 	emit this->enteredPage(current_index + 1);
   } else {
-    this->close();
+	this->close();
   }
 }
 
@@ -101,13 +99,13 @@ void Dialog::showEvent(QShowEvent *event) {
 
   // Show the first page, once the widget itself is shown
   if (!initialized_) {
-    this->prepare();
+	this->prepare();
   }
 }
 
 bool Dialog::abortLeave(int id) {
   if (pages_->currentIndex() != id) {
-    return false;
+	return false;
   }
   abort_ = true;
   return true;

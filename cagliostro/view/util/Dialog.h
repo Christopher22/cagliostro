@@ -13,7 +13,7 @@ You should have received a copy of the GNU Affero General Public License along w
 #include "ButtonGroup.h"
 
 #include <QWidget>
-#include <QStackedWidget>
+#include <QStackedLayout>
 #include <QMap>
 #include <QAbstractButton>
 
@@ -45,7 +45,7 @@ class Dialog : public QWidget {
  private:
   void nextPage();
 
-  QStackedWidget *pages_;
+  QStackedLayout *pages_;
   ButtonGroup *buttons_;
   bool abort_, initialized_;
 };
