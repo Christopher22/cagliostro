@@ -12,31 +12,33 @@ You should have received a copy of the GNU Affero General Public License along w
 #include <QVideoSurfaceFormat>
 #include <QThread>
 
+#include <opencv2/imgproc.hpp>
+
 namespace cagliostro::model::content::util {
 
 VideoDecoder::VideoDecoder(std::unique_ptr<cv::VideoCapture> player)
-    : QObject(),
-      raw_decoder_(std::move(player)),
-      buffer_(),
-      timer_(new QTimer(this)),
-      surface_(nullptr),
-      milliseconds_per_frame_(16) {
+	: QObject(),
+	  raw_decoder_(std::move(player)),
+	  buffer_(),
+	  timer_(new QTimer(this)),
+	  surface_(nullptr),
+	  milliseconds_per_frame_(16) {
 
   const double fps = raw_decoder_->get(cv::CAP_PROP_FPS);
   if (fps > 0) {
-    milliseconds_per_frame_ = 1000 / fps;
+	milliseconds_per_frame_ = 1000 / fps;
   }
 
   timer_->setInterval(milliseconds_per_frame_);
   QObject::connect(timer_, &QTimer::timeout, this, &VideoDecoder::decode);
   QObject::connect(this, &VideoDecoder::done, this, &VideoDecoder::close);
   QObject::connect(this, &VideoDecoder::started, timer_, [&]() {
-    timer_->start();
+	timer_->start();
   });
   QObject::connect(this, &VideoDecoder::stopped, timer_, [&]() {
-    if (timer_->isActive()) {
-      timer_->stop();
-    }
+	if (timer_->isActive()) {
+	  timer_->stop();
+	}
   });
 }
 
@@ -45,48 +47,53 @@ VideoDecoder *VideoDecoder::load(const QUrl &uri) {
   auto path = uri.isLocalFile() ? uri.toLocalFile() : uri.toString();
   auto raw_decoder = std::make_unique<cv::VideoCapture>(path.toStdString(), cv::CAP_FFMPEG);
   if (!raw_decoder->isOpened()) {
-    return nullptr;
+	return nullptr;
   }
 
   // Decode the first frame to ensure the video is readable
   auto *decoder = new VideoDecoder(std::move(raw_decoder));
   if (!decoder->decode()) {
-    delete decoder;
-    return nullptr;
+	delete decoder;
+	return nullptr;
   }
 
   return decoder;
 }
 
 bool VideoDecoder::decode() {
-  const bool must_create_buffer = !buffer_.isValid();
-  cv::Mat buffer;
-  if (!must_create_buffer) {
-    emit this->frameReady(buffer_);
-    // Prepare the next frame
-    buffer_.setStartTime(buffer_.startTime() + milliseconds_per_frame_);
-    buffer_.setEndTime(buffer_.endTime() + milliseconds_per_frame_);
-    buffer = cv::Mat(buffer_.height(), buffer_.width(), CV_8UC3, buffer_.bits(), buffer_.bytesPerLine());
+  if (!raw_decoder_->read(raw_buffer_)) {
+	emit this->done();
+	return false;
   }
 
-  if (!raw_decoder_->read(buffer)) {
-    emit this->done();
-    return false;
+  const std::size_t bytes = raw_buffer_.cols * raw_buffer_.rows * 4;
+  qint64 start, stop;
+  if (buffer_.isValid()) {
+	emit this->frameReady(buffer_);
+	start = buffer_.startTime() + milliseconds_per_frame_;
+	stop = buffer_.endTime() + milliseconds_per_frame_;
+  } else {
+	start = 0.0;
+	stop = milliseconds_per_frame_;
   }
 
-  if (must_create_buffer) {
-    const std::size_t bytes = buffer.step[0] * buffer.rows;
-    buffer_ = QVideoFrame(bytes, QSize(buffer.cols, buffer.rows), buffer.step, QVideoFrame::Format_BGR24);
-    if (!buffer_.map(QAbstractVideoBuffer::ReadWrite)) {
-      buffer_ = QVideoFrame();
-      return false;
-    }
-    std::memcpy(buffer_.bits(), buffer.data, bytes);
+  // At this place, we allocate a new video frame. Oterwise, we may overwrite the content during presenation.
+  buffer_ = QVideoFrame(bytes,
+						QSize(raw_buffer_.cols, raw_buffer_.rows),
+						raw_buffer_.cols * 4,
+						QVideoFrame::Format_ARGB32);
+  buffer_.setStartTime(start);
+  buffer_.setEndTime(stop);
 
-    // Set buffer metadata
-    buffer_.setStartTime(0);
-    buffer_.setEndTime(milliseconds_per_frame_);
+  if (!buffer_.isValid() || !buffer_.map(QAbstractVideoBuffer::ReadWrite)) {
+	buffer_ = QVideoFrame();
+	return false;
   }
+
+  cv::cvtColor(raw_buffer_, converted_buffer_, cv::COLOR_BGR2BGRA);
+  std::memcpy(buffer_.bits(), converted_buffer_.data, bytes);
+
+  buffer_.unmap();
 
   return true;
 }
@@ -95,7 +102,7 @@ bool VideoDecoder::start() {
   assert(QThread::currentThread() != this->thread());
 
   if (this->status() != Status::Stopped || !this->decode()) {
-    return false;
+	return false;
   }
 
   emit this->started();
@@ -105,13 +112,13 @@ bool VideoDecoder::start() {
 bool VideoDecoder::stop(bool should_close) {
   assert(QThread::currentThread() != this->thread());
   if (this->status() != Status::Running) {
-    return false;
+	return false;
   }
 
   if (should_close) {
-    emit this->done();
+	emit this->done();
   } else {
-    emit this->stopped();
+	emit this->stopped();
   }
   return true;
 }
@@ -120,19 +127,26 @@ void VideoDecoder::setVideoSurface(QAbstractVideoSurface *surface) {
   assert(QThread::currentThread() != this->thread());
 
   if (surface_ != surface && surface_ && surface_->isActive()) {
-    surface_->stop();
+	surface_->stop();
   }
 
   surface_ = surface;
   if (surface_) {
-    surface_->start(QVideoSurfaceFormat(
-        buffer_.size(),
-        buffer_.pixelFormat(),
-        QAbstractVideoBuffer::NoHandle
-    ));
-    QObject::connect(this, &VideoDecoder::frameReady, surface_, [this](const QVideoFrame &frame) {
-      surface_->present(frame);
-    });
+	QObject::connect(this, &VideoDecoder::started, surface_, [this]() {
+	  if (!surface_->start(QVideoSurfaceFormat(
+		  buffer_.size(),
+		  buffer_.pixelFormat(),
+		  QAbstractVideoBuffer::NoHandle
+	  ))) {
+		qWarning("Unable to start the video surface!");
+	  }
+	});
+
+	QObject::connect(this, &VideoDecoder::frameReady, surface_, [this](const QVideoFrame &frame) {
+	  if (surface_->isActive() && !surface_->present(frame)) {
+		qWarning("Unable to present frame");
+	  }
+	});
   }
 }
 
@@ -142,18 +156,18 @@ QSize VideoDecoder::size() const noexcept {
 
 void VideoDecoder::close() {
   if (timer_->isActive()) {
-    timer_->stop();
+	timer_->stop();
   }
   raw_decoder_.reset(nullptr);
 }
 
 VideoDecoder::Status VideoDecoder::status() const noexcept {
   if (timer_->isActive()) {
-    return Status::Running;
+	return Status::Running;
   } else if (raw_decoder_) {
-    return Status::Stopped;
+	return Status::Stopped;
   } else {
-    return Status::Closed;
+	return Status::Closed;
   }
 }
 

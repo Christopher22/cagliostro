@@ -46,12 +46,12 @@ set(cagliostro_components Widgets Multimedia MultimediaWidgets)
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     LIST(APPEND cagliostro_components Test)
 endif ()
-find_package(Qt5 COMPONENTS ${cagliostro_components} LinguistTools REQUIRED)
+find_package(Qt5 5.15 COMPONENTS ${cagliostro_components} LinguistTools REQUIRED)
 list(TRANSFORM cagliostro_components PREPEND "Qt5::")
 
 # Code files
 set(src_model cagliostro/model/Question.cpp cagliostro/model/Question.h cagliostro/model/Page.cpp cagliostro/model/Page.h cagliostro/model/content/Content.h cagliostro/model/Entity.cpp cagliostro/model/Entity.h cagliostro/model/Wizard.cpp cagliostro/model/Wizard.h cagliostro/model/Selection.cpp cagliostro/model/Selection.h cagliostro/model/content/Video.cpp cagliostro/model/content/Video.h cagliostro/model/content/Content.cpp cagliostro/model/content/util/VideoDecoder.cpp cagliostro/model/content/util/VideoDecoder.h cagliostro/model/Config.cpp cagliostro/model/Config.h cagliostro/model/content/Resource.cpp cagliostro/model/content/Resource.h cagliostro/model/content/preprocessors/Header.cpp cagliostro/model/content/preprocessors/Header.h cagliostro/model/Responses.cpp cagliostro/model/Responses.h cagliostro/model/content/postprocessors/Delete.cpp cagliostro/model/content/postprocessors/Delete.h cagliostro/model/Source.cpp cagliostro/model/Source.h)
-set(src_view cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/view/ConfigPage.cpp cagliostro/view/ConfigPage.h cagliostro/view/util/FileSelector.cpp cagliostro/view/util/FileSelector.h cagliostro/view/util/Dialog.cpp cagliostro/view/util/Dialog.h cagliostro/view/util/DialogPage.cpp cagliostro/view/util/DialogPage.h cagliostro/view/util/ButtonGroup.cpp cagliostro/view/util/ButtonGroup.h cagliostro/view/util/AspectRatioLayout.cpp cagliostro/view/util/AspectRatioLayout.h cagliostro/view/util/VideoSurface.cpp cagliostro/view/util/VideoSurface.h)
+set(src_view cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/view/ConfigPage.cpp cagliostro/view/ConfigPage.h cagliostro/view/util/FileSelector.cpp cagliostro/view/util/FileSelector.h cagliostro/view/util/Dialog.cpp cagliostro/view/util/Dialog.h cagliostro/view/util/DialogPage.cpp cagliostro/view/util/DialogPage.h cagliostro/view/util/ButtonGroup.cpp cagliostro/view/util/ButtonGroup.h)
 
 # Prepare translations
 set_source_files_properties(${cagliostro_translations} PROPERTIES OUTPUT_LOCATION "${CMAKE_BINARY_DIR}/translations")

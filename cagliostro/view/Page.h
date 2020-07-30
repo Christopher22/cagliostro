@@ -25,6 +25,7 @@ class Page : public util::DialogPage {
 
  protected:
   void prepare() override;
+  void present() override;
   bool cleanUp() override;
 
  private:
@@ -33,6 +34,7 @@ class Page : public util::DialogPage {
   VideoViewer *createContentWidget(model::content::Content *question) noexcept;
 
   model::Page *page_;
+  VideoViewer *video_;
   QFormLayout *question_layout_;
 };
 }

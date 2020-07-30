@@ -27,9 +27,9 @@ class VideoDecoder : public QObject {
 
  public:
   enum class Status {
-    Stopped,
-    Running,
-    Closed
+	Stopped,
+	Running,
+	Closed
   };
 
   static VideoDecoder *load(const QUrl &uri);
@@ -55,6 +55,7 @@ class VideoDecoder : public QObject {
  private:
   std::unique_ptr<cv::VideoCapture> raw_decoder_;
   QVideoFrame buffer_;
+  cv::Mat raw_buffer_, converted_buffer_;
   QTimer *timer_;
   QAbstractVideoSurface *surface_;
   qint64 milliseconds_per_frame_;

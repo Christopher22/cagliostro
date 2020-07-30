@@ -10,7 +10,6 @@ You should have received a copy of the GNU Affero General Public License along w
 #include "Page.h"
 #include "Scale.h"
 #include "../model/content/Video.h"
-#include "util/AspectRatioLayout.h"
 
 #include <QComboBox>
 #include <QMessageBox>
@@ -21,7 +20,7 @@ You should have received a copy of the GNU Affero General Public License along w
 namespace cagliostro::view {
 
 Page::Page(model::Page *page, util::Dialog *parent)
-	: util::DialogPage(parent), page_(page), question_layout_(new QFormLayout()) {
+	: util::DialogPage(parent), page_(page), question_layout_(new QFormLayout()), video_(nullptr) {
 
   // Create the layout and add the content widget, if provided
   auto *layout = new QVBoxLayout();
@@ -39,13 +38,9 @@ Page::Page(model::Page *page, util::Dialog *parent)
   description->setWordWrap(true);
   layout->addWidget(description, 0, Qt::AlignCenter);
 
-  VideoViewer *renderer = this->createContentWidget(page->content());
-  if (renderer != nullptr) {
-	// Ensure that the aspect ratio of the video renderer ist correct.
-	const auto video_size = renderer->frame_size();
-	auto *aspect_ratio = new util::AspectRatioLayout(float(video_size.width()) / float(video_size.height()));
-	aspect_ratio->addWidget(renderer);
-	layout->addLayout(aspect_ratio);
+  video_ = this->createContentWidget(page->content());
+  if (video_ != nullptr) {
+	layout->addWidget(video_, 0);
   }
 
   // Create the question layout
@@ -78,7 +73,7 @@ VideoViewer *Page::createContentWidget(model::content::Content *content) noexcep
   }
 
   auto *widget = new VideoViewer(video->size(), this);
-  if (!video->bind(widget->surface())) {
+  if (!video->bind(widget->videoSurface())) {
 	widget->deleteLater();
 	return nullptr;
   }
@@ -104,7 +99,17 @@ void Page::prepare() {
   }
 }
 
+void Page::present() {
+  if (video_ != nullptr) {
+	video_->show();
+  }
+}
+
 bool Page::cleanUp() {
+  if (video_ != nullptr) {
+	video_->hide();
+  }
+
   // Stop playing the video
   auto *content = page_->content();
   if (content != nullptr) {

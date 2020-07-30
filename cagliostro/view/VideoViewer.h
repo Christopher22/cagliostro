@@ -10,62 +10,12 @@ You should have received a copy of the GNU Affero General Public License along w
 #ifndef CAGLIOSTRO_CAGLIOSTRO_VIEW_VIDEOVIEWER_H_
 #define CAGLIOSTRO_CAGLIOSTRO_VIEW_VIDEOVIEWER_H_
 
-#include <QLabel>
-#include <QAbstractVideoSurface>
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLTexture>
-#include <QImage>
-#include <QAbstractVideoSurface>
+#include <QVideoWidget>
 
 namespace cagliostro::view {
-
-class VideoViewer : public QOpenGLWidget, protected QOpenGLFunctions {
- Q_OBJECT
-
+class VideoViewer : public QVideoWidget {
  public:
   explicit VideoViewer(const QSize &size, QWidget *parent = nullptr);
-  QAbstractVideoSurface *surface();
-  [[nodiscard]] QSize sizeHint() const override;
-  [[nodiscard]] inline QOpenGLTexture *frame() noexcept {
-	return texture_;
-  }
-  [[nodiscard]] inline QSize frame_size() noexcept {
-	return size_;
-  }
-
- protected:
-  void initializeGL() override;
-  void paintGL() override;
-  void showEvent(QShowEvent *event) override;
-
- private:
-  bool initTextures();
-  bool initShaders();
-
-  QAbstractVideoSurface *surface_;
-  QVector<QVector3D> vertex_coordinates_;
-  QVector<QVector2D> texture_coordinates_;
-  QOpenGLShaderProgram program;
-  QOpenGLTexture *texture_;
-  QSize size_;
-
-  constexpr static const char *VERTEX_SHADER = R"|(
-attribute vec4 vertex;
-attribute vec2 texCoord;
-varying vec2 texc;
-void main(void) {
-    gl_Position = vertex;
-    texc = texCoord;
-})|";
-
-  constexpr static const char *FRAGMENT_SHADER = R"|(
-uniform sampler2D texture;
-varying vec2 texc;
-void main(void) {
-  gl_FragColor = texture2D(texture,texc);
-})|";
 };
 }
 
