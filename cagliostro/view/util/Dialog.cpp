@@ -89,6 +89,8 @@ void Dialog::nextPage() {
 	current_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	current_widget->adjustSize();
 	current_widget->setVisible(true);
+
+	emit this->enteredPage(current_index + 1);
   } else {
     this->close();
   }

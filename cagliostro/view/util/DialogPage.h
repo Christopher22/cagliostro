@@ -23,6 +23,7 @@ class DialogPage : public QWidget {
  protected:
   ButtonGroup *buttons() noexcept;
   virtual void prepare() {};
+  virtual void present() {};
   virtual bool cleanUp() { return true; };
 
  signals:
@@ -30,6 +31,7 @@ class DialogPage : public QWidget {
 
  private:
   void handleEnterSignal(int id);
+  void handleEnteredSignal(int id);
   void handleLeaveSignal(int id);
 
   Dialog *dialog_;

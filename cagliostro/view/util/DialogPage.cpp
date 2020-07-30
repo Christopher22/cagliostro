@@ -21,6 +21,7 @@ DialogPage::DialogPage(Dialog *dialog) : QWidget(nullptr), dialog_(dialog) {
     dialog_->setPageReady(page_id_, value);
   });
   QObject::connect(dialog_, &Dialog::enterPage, this, &DialogPage::handleEnterSignal);
+  QObject::connect(dialog_, &Dialog::enteredPage, this, &DialogPage::handleEnteredSignal);
   QObject::connect(dialog_, &Dialog::leavePage, this, &DialogPage::handleLeaveSignal);
 }
 
@@ -33,7 +34,13 @@ void DialogPage::handleEnterSignal(int id) {
 void DialogPage::handleLeaveSignal(int id) {
   // Abort leaving the page if cleanUp failed
   if (page_id_ == id && !this->cleanUp()) {
-    dialog_->abortLeave(page_id_);
+	dialog_->abortLeave(page_id_);
+  }
+}
+
+void DialogPage::handleEnteredSignal(int id) {
+  if (page_id_ == id) {
+	this->present();
   }
 }
 

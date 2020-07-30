@@ -39,6 +39,7 @@ class Dialog : public QWidget {
 
  signals:
   void enterPage(int id);
+  void enteredPage(int id);
   void leavePage(int id);
 
  private:
