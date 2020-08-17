@@ -28,15 +28,26 @@ class FileSelector : public QWidget {
 				 NOTIFY
 				 pathSelected)
 
+  enum class SelectionType {
+	Fixed,
+	Selection,
+	Free
+  };
+
   FileSelector(QString description,
 			   QString filter,
 			   bool for_saving = false,
 			   QString root = QString(),
 			   QWidget *parent = nullptr);
   [[nodiscard]] QString path() const;
-  void setPath(const QString &path);
+
+  void setPath(const QFileInfo &file, bool add_only = false);
+  void setPath(const QString &path, bool add_only = false);
   void setRoot(const QString &root);
-  explicit operator bool() const;
+
+  explicit operator bool() const noexcept;
+  [[nodiscard]] SelectionType selectionType() const noexcept;
+
   QFileDialog::Options *operator->();
 
  signals:
@@ -49,12 +60,14 @@ class FileSelector : public QWidget {
  private:
   void selectPath();
   void _onSelectionChange(int index);
+  [[nodiscard]] QList<QFileInfo> detectDefault() const;
 
   QComboBox *path_;
   QString root_dir_;
   const QString description_, filter_;
   const bool for_saving_;
   QFileDialog::Options options_;
+  SelectionType type_;
 };
 }
 

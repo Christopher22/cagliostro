@@ -26,39 +26,45 @@ FileSelector::FileSelector(QString description, QString filter, bool for_saving,
 	  filter_(std::move(filter)),
 	  for_saving_(for_saving) {
 
-  this->setAcceptDrops(true);
+  QObject::connect(path_,
+				   QOverload<int>::of(&QComboBox::currentIndexChanged),
+				   this,
+				   &FileSelector::_onSelectionChange);
 
   path_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   path_->addItem(tr("Please select a file"));
-  QObject::connect(path_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &FileSelector::_onSelectionChange);
-
-  auto *selector = new QPushButton(this);
-  selector->setText("...");
-  selector->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-  QObject::connect(selector, &QPushButton::clicked, this, &FileSelector::selectPath);
 
   auto *layout = new QHBoxLayout(this);
-  layout->addWidget(path_);
-  layout->addWidget(selector);
   layout->setMargin(0);
-  this->setLayout(layout);
+  layout->addWidget(path_);
 
-  // Fill the file path automatically, if a single matching file is in the working directory
-  if (!filter_.isEmpty()) {
-	// Get the extension from the filter
-	const QRegularExpression filter_regex("[^(]+\\(([^)]+)");
-	const auto match = filter_regex.match(filter_);
-	if (!match.isValid()) {
-	  return;
-	}
+  // Fill the file path automatically, if there are
+  auto predefined_files = this->detectDefault();
+  if (predefined_files.empty()) {
+	this->setAcceptDrops(true);
+	auto *selector = new QPushButton(this);
+	selector->setText("...");
+	selector->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+	QObject::connect(selector, &QPushButton::clicked, this, &FileSelector::selectPath);
 
-	// Query for such a file
-	QDir current_dir = QDir::currentPath();
-	auto files = current_dir.entryInfoList(QStringList(match.captured(1)), QDir::Files | QDir::Readable);
-	if (files.size() == 1) {
-	  this->setPath(files[0].absoluteFilePath());
+	// Add the button to the layout
+	layout->addWidget(selector);
+
+	type_ = SelectionType::Free;
+  } else if (predefined_files.size() == 1) {
+	// If there is a single file, set it as mandatory
+	this->setEnabled(false);
+	this->setPath(predefined_files[0].absoluteFilePath());
+	type_ = SelectionType::Fixed;
+  } else {
+	// Add all the candidates to the selection
+	for (auto &file: predefined_files) {
+	  this->setPath(file, true);
 	}
+	type_ = SelectionType::Selection;
   }
+
+  this->setLayout(layout);
 }
 
 void FileSelector::selectPath() {
@@ -80,7 +86,7 @@ void FileSelector::_onSelectionChange(int index) {
   }
 }
 
-FileSelector::operator bool() const {
+FileSelector::operator bool() const noexcept {
   return path_->itemData(path_->currentIndex()).isValid();
 }
 
@@ -88,14 +94,19 @@ QString FileSelector::path() const {
   return path_->itemData(path_->currentIndex()).toString();
 }
 
-void FileSelector::setPath(const QString &path) {
+void FileSelector::setPath(const QFileInfo &file, bool add_only) {
   if (path_->itemData(path_->currentIndex()).isNull()) {
 	path_->clear();
   }
 
-  QFileInfo info(path);
-  path_->addItem(info.fileName(), path);
-  path_->setCurrentIndex(path_->count() - 1);
+  path_->addItem(file.baseName(), file.absoluteFilePath());
+  if (!add_only) {
+	path_->setCurrentIndex(path_->count() - 1);
+  }
+}
+
+void FileSelector::setPath(const QString &path, bool add_only) {
+  this->setPath(QFileInfo(path), add_only);
 }
 
 void FileSelector::setRoot(const QString &root) {
@@ -123,6 +134,26 @@ void FileSelector::dropEvent(QDropEvent *event) {
 	  }
 	}
   }
+}
+
+QList<QFileInfo> FileSelector::detectDefault() const {
+  if (filter_.isEmpty()) {
+	return QList<QFileInfo>();
+  }
+  // Get the extension from the filter
+  const QRegularExpression filter_regex("[^(]+\\(([^)]+)");
+  const auto match = filter_regex.match(filter_);
+  if (!match.isValid()) {
+	return QList<QFileInfo>();
+  }
+
+  // Query for such a file
+  QDir current_dir = QDir::currentPath();
+  return current_dir.entryInfoList(QStringList(match.captured(1)), QDir::Files | QDir::Readable);
+}
+
+FileSelector::SelectionType FileSelector::selectionType() const noexcept {
+  return type_;
 }
 
 }

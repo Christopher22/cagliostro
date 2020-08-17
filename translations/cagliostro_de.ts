@@ -102,12 +102,12 @@
         <translation>Experiment (*.cagliostro)</translation>
     </message>
     <message>
-        <source>Please specify the file to the survey you recieved from your supervisors.</source>
-        <translation type="unfinished"></translation>
+        <source>Please specify the survey you recieved from your supervisors:</source>
+        <translation>Bitte geben sie die übermittelten Informationen ein:</translation>
     </message>
     <message>
-        <source>File</source>
-        <translation type="unfinished"></translation>
+        <source>Survey</source>
+        <translation>Experiment</translation>
     </message>
     <message>
         <source>Please enter the password you recieved from your supervisors.</source>
@@ -115,7 +115,7 @@
     </message>
     <message>
         <source>Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Passwort</translation>
     </message>
     <message>
         <source>Load</source>

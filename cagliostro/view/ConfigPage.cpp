@@ -39,14 +39,14 @@ ConfigPage::ConfigPage(util::Dialog *parent)
   auto *fields = new QFormLayout();
 
   // If the file was automatically determined, do not show the widget, but trigger the signal manually.
-  if (!*file_selector_) {
-    layout->addWidget(new QLabel(tr("Please specify the file to the survey you recieved from your supervisors."),
-                                 this));
-    fields->addRow(tr("File"), file_selector_);
+  if (file_selector_->selectionType() != util::FileSelector::SelectionType::Fixed) {
+	layout->addWidget(new QLabel(tr("Please specify the survey you recieved from your supervisors:"),
+								 this));
+	fields->addRow(tr("Survey"), file_selector_);
   } else {
-    layout->addWidget(new QLabel(tr("Please enter the password you recieved from your supervisors."),
-                                 this));
-    file_selector_->setVisible(false);
+	layout->addWidget(new QLabel(tr("Please enter the password you recieved from your supervisors."),
+								 this));
+	file_selector_->setVisible(false);
   }
   fields->addRow(tr("Password"), password_);
   layout->addLayout(fields);
