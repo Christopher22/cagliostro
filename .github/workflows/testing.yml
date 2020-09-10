@@ -11,12 +11,14 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - name: Prepare PATH
+        run: |
+          echo "::add-path::/home/runner/.local/bin"
       - name: Download Conan
         run: |
           pwd
           pip3 install wheel setuptools
           pip3 install conan
-          echo "::add-path::/home/runner/.local/bin"
           conan --version
           ls
       - name: Build CMake
