@@ -8,7 +8,11 @@ You should have received a copy of the GNU Affero General Public License along w
 ]]
 
 cmake_minimum_required(VERSION 3.15)
-project(cagliostro)
+project(cagliostro VERSION 0.3.1.0 DESCRIPTION "Create cross-platform surveys without coding for empirical experiments" HOMEPAGE_URL "https://github.com/Christopher22/cagliostro")
+set(cagliostro_AUTHOR "Christopher Gundler")
+
+# Create a nice build dir without any cache files on CMake
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/cagliostro_${cagliostro_VERSION_MAJOR}_${cagliostro_VERSION_MINOR}_${cagliostro_VERSION_PATCH}_${cagliostro_VERSION_TWEAK}")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -67,11 +71,13 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_test(NAME CagliostroTest COMMAND cagliostro)
 else ()
     if (WIN32)
-        set(custom_flag WIN32)
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources.rc.in ${CMAKE_CURRENT_BINARY_DIR}/resources.rc @ONLY)
+        set(custom_flag WIN32 ${CMAKE_CURRENT_BINARY_DIR}/resources.rc)
     elseif (APPLE)
         set(custom_flag MACOSX_BUNDLE)
     endif ()
     add_executable(cagliostro ${custom_flag} ${cagliostro_compiled_translations} cagliostro/main.cpp ${src_model} ${src_view})
+    target_compile_definitions(cagliostro PRIVATE cagliostro_VERSION="${cagliostro_VERSION_MAJOR}.${cagliostro_VERSION_MINOR}.${cagliostro_VERSION_PATCH}.${cagliostro_VERSION_TWEAK}" cagliostro_AUTHOR="${cagliostro_AUTHOR}")
 endif ()
 
 # Build the crypto helper optional

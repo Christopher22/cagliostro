@@ -29,8 +29,9 @@ int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
 
   // Set some meta data
-  QApplication::setOrganizationName("Christopher Gundler");
-  QApplication::setApplicationName("cagliostro");
+  QApplication::setApplicationName(QStringLiteral("cagliostro"));
+  QApplication::setApplicationVersion(QStringLiteral(cagliostro_VERSION));
+  QApplication::setOrganizationName(QStringLiteral(cagliostro_AUTHOR));
   QApplication::setQuitOnLastWindowClosed(true);
 
   // Try to load translations on runtime

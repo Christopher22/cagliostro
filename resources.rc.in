@@ -1,0 +1,28 @@
+#include <windows.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     @cagliostro_VERSION_MAJOR@,@cagliostro_VERSION_MINOR@,@cagliostro_VERSION_PATCH@,@cagliostro_VERSION_TWEAK@
+PRODUCTVERSION  @cagliostro_VERSION_MAJOR@,@cagliostro_VERSION_MINOR@,@cagliostro_VERSION_PATCH@,@cagliostro_VERSION_TWEAK@
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName",        "@cagliostro_AUTHOR@"
+            VALUE "FileDescription",    "cagliostro"
+            VALUE "FileVersion",        "cagliostro"
+            VALUE "InternalName",       "cagliostro"
+            VALUE "LegalCopyright",     "Copyright (c) 2020 @cagliostro_AUTHOR@"
+            VALUE "LegalTrademarks1",   "All Rights Reserved"
+            VALUE "LegalTrademarks2",   "All Rights Reserved"
+            VALUE "OriginalFilename",   "cagliostro.exe"
+            VALUE "ProductName",        "Cagliostro"
+            VALUE "ProductVersion",     "@cagliostro_VERSION_MAJOR@.@cagliostro_VERSION_MINOR@.@cagliostro_VERSION_PATCH@.@cagliostro_VERSION_TWEAK@\0"
+        END
+    END
+
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
