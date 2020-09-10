@@ -12,6 +12,10 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include <QWidget>
 #include <QFileDialog>
+#ifdef HIDE_CAGLIOSTRO_FILES
+#include <QValidator>
+#include <QStandardItemModel>
+#endif
 
 class QComboBox;
 
@@ -41,8 +45,8 @@ class FileSelector : public QWidget {
 			   QWidget *parent = nullptr);
   [[nodiscard]] QString path() const;
 
-  void setPath(const QFileInfo &file, bool add_only = false);
-  void setPath(const QString &path, bool add_only = false);
+  void setPath(const QFileInfo &file, bool add_only = false, bool remove_default = true);
+  void setPath(const QString &path, bool add_only = false, bool remove_default = true);
   void setRoot(const QString &root);
 
   explicit operator bool() const noexcept;
@@ -61,6 +65,18 @@ class FileSelector : public QWidget {
   void selectPath();
   void _onSelectionChange(int index);
   [[nodiscard]] QList<QFileInfo> detectDefault() const;
+
+#ifdef HIDE_CAGLIOSTRO_FILES
+  class Validator : public QValidator {
+   public:
+	explicit Validator(QComboBox *parent);
+	State validate(QString &string, int &i) const override;
+
+   private:
+	QStandardItemModel *model_;
+  };
+  void _onEditTextChange(const QString &text);
+#endif
 
   QComboBox *path_;
   QString root_dir_;

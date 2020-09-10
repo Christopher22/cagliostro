@@ -8,7 +8,7 @@ You should have received a copy of the GNU Affero General Public License along w
 ]]
 
 cmake_minimum_required(VERSION 3.15)
-project(cagliostro VERSION 0.3.1.0 DESCRIPTION "Create cross-platform surveys without coding for empirical experiments" HOMEPAGE_URL "https://github.com/Christopher22/cagliostro")
+project(cagliostro VERSION 0.3.2.0 DESCRIPTION "Create cross-platform surveys without coding for empirical experiments" HOMEPAGE_URL "https://github.com/Christopher22/cagliostro")
 set(cagliostro_AUTHOR "Christopher Gundler")
 
 # Create a nice build dir without any cache files on CMake
@@ -20,6 +20,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 option(BUILD_CRYPTO "Build cagliostro with support for encrypted config files" ON)
+option(HIDE_CAGLIOSTRO_FILES "Let the user type in the name of the cagliostro files blindly, if there are multiple" ON)
 
 # Get the path to current CMake
 get_filename_component(cagliostro_cmake ${CMAKE_COMMAND} DIRECTORY)
@@ -78,6 +79,9 @@ else ()
     endif ()
     add_executable(cagliostro ${custom_flag} ${cagliostro_compiled_translations} cagliostro/main.cpp ${src_model} ${src_view})
     target_compile_definitions(cagliostro PRIVATE cagliostro_VERSION="${cagliostro_VERSION_MAJOR}.${cagliostro_VERSION_MINOR}.${cagliostro_VERSION_PATCH}.${cagliostro_VERSION_TWEAK}" cagliostro_AUTHOR="${cagliostro_AUTHOR}")
+    if(HIDE_CAGLIOSTRO_FILES)
+        target_compile_definitions(cagliostro PRIVATE HIDE_CAGLIOSTRO_FILES)
+    endif()
 endif ()
 
 # Build the crypto helper optional

@@ -53,15 +53,28 @@ FileSelector::FileSelector(QString description, QString filter, bool for_saving,
 	type_ = SelectionType::Free;
   } else if (predefined_files.size() == 1) {
 	// If there is a single file, set it as mandatory
-	this->setEnabled(false);
 	this->setPath(predefined_files[0].absoluteFilePath());
 	type_ = SelectionType::Fixed;
   } else {
 	// Add all the candidates to the selection
 	for (auto &file: predefined_files) {
+#ifdef HIDE_CAGLIOSTRO_FILES
+	  path_->setItemText(0, "");
+	  this->setPath(file, true, false);
+#else
 	  this->setPath(file, true);
+#endif
 	}
 	type_ = SelectionType::Selection;
+
+#ifdef HIDE_CAGLIOSTRO_FILES
+	path_->setEditable(true);
+	path_->setInsertPolicy(QComboBox::NoInsert);
+	path_->setStyleSheet("::drop-down{image:none}");
+	QObject::connect(path_, &QComboBox::editTextChanged, this, &FileSelector::_onEditTextChange);
+	new Validator(path_);
+	path_->setCompleter(nullptr);
+#endif
   }
 
   this->setLayout(layout);
@@ -94,8 +107,8 @@ QString FileSelector::path() const {
   return path_->itemData(path_->currentIndex()).toString();
 }
 
-void FileSelector::setPath(const QFileInfo &file, bool add_only) {
-  if (path_->itemData(path_->currentIndex()).isNull()) {
+void FileSelector::setPath(const QFileInfo &file, bool add_only, bool remove_default) {
+  if (remove_default && path_->itemData(path_->currentIndex()).isNull()) {
 	path_->clear();
   }
 
@@ -105,8 +118,8 @@ void FileSelector::setPath(const QFileInfo &file, bool add_only) {
   }
 }
 
-void FileSelector::setPath(const QString &path, bool add_only) {
-  this->setPath(QFileInfo(path), add_only);
+void FileSelector::setPath(const QString &path, bool add_only, bool remove_default) {
+  this->setPath(QFileInfo(path), add_only, remove_default);
 }
 
 void FileSelector::setRoot(const QString &root) {
@@ -156,4 +169,34 @@ FileSelector::SelectionType FileSelector::selectionType() const noexcept {
   return type_;
 }
 
+#ifdef HIDE_CAGLIOSTRO_FILES
+void FileSelector::_onEditTextChange(const QString &text) {
+  auto model = qobject_cast<QStandardItemModel *>(path_->model());
+  auto selection = model->findItems(text, Qt::MatchExactly);
+  if (!selection.empty()) {
+	this->_onSelectionChange(selection[0]->row());
+  } else {
+	// Inform the interested subscriber that there is no longer a valid path
+	emit pathSelected("");
+  }
+}
+
+FileSelector::Validator::Validator(QComboBox *parent)
+	: QValidator(parent), model_(qobject_cast<QStandardItemModel *>(parent->model())) {
+  assert(parent != nullptr);
+  assert(model_ != nullptr);
+  parent->setValidator(this);
+}
+
+QValidator::State FileSelector::Validator::validate(QString &string, int &i) const {
+  auto candidates = model_->findItems(string, Qt::MatchStartsWith);
+  if (candidates.empty()) {
+	return QValidator::State::Invalid;
+  } else if (candidates.size() == 1 && candidates[0]->text().compare(string) == 0) {
+	return QValidator::State::Acceptable;
+  } else {
+	return QValidator::State::Intermediate;
+  }
+}
+#endif
 }
