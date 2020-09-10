@@ -14,6 +14,8 @@ jobs:
       - name: Prepare PATH
         run: |
           echo "::add-path::/home/runner/.local/bin"
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
       - name: Download Conan
         run: |
           pwd
