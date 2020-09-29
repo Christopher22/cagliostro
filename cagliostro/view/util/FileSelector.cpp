@@ -162,7 +162,7 @@ QList<QFileInfo> FileSelector::detectDefault() const {
 
   // Query for such a file
   QDir current_dir = QDir::currentPath();
-  return current_dir.entryInfoList(QStringList(match.captured(1)), QDir::Files | QDir::Readable);
+  return current_dir.entryInfoList(QStringList(match.captured(1)), QDir::Files | QDir::Readable | QDir::Hidden);
 }
 
 FileSelector::SelectionType FileSelector::selectionType() const noexcept {
