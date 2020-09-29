@@ -8,7 +8,7 @@ You should have received a copy of the GNU Affero General Public License along w
 ]]
 
 cmake_minimum_required(VERSION 3.15)
-project(cagliostro VERSION 0.3.2.0 DESCRIPTION "Create cross-platform surveys without coding for empirical experiments" HOMEPAGE_URL "https://github.com/Christopher22/cagliostro")
+project(cagliostro VERSION 0.3.2.1 DESCRIPTION "Create cross-platform surveys without coding for empirical experiments" HOMEPAGE_URL "https://github.com/Christopher22/cagliostro")
 set(cagliostro_AUTHOR "Christopher Gundler")
 
 # Create a nice build dir without any cache files on CMake
@@ -59,7 +59,7 @@ set(src_model cagliostro/model/Question.cpp cagliostro/model/Question.h cagliost
 set(src_view cagliostro/view/Wizard.cpp cagliostro/view/Wizard.h cagliostro/view/Page.cpp cagliostro/view/Page.h cagliostro/view/VideoViewer.cpp cagliostro/view/VideoViewer.h cagliostro/view/Scale.cpp cagliostro/view/Scale.h cagliostro/view/ConfigPage.cpp cagliostro/view/ConfigPage.h cagliostro/view/util/FileSelector.cpp cagliostro/view/util/FileSelector.h cagliostro/view/util/Dialog.cpp cagliostro/view/util/Dialog.h cagliostro/view/util/DialogPage.cpp cagliostro/view/util/DialogPage.h cagliostro/view/util/ButtonGroup.cpp cagliostro/view/util/ButtonGroup.h)
 
 # Prepare translations
-set_source_files_properties(${cagliostro_translations} PROPERTIES OUTPUT_LOCATION "${CMAKE_BINARY_DIR}/translations")
+set_source_files_properties(${cagliostro_translations} PROPERTIES OUTPUT_LOCATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/translations")
 qt5_add_translation(cagliostro_compiled_translations ${cagliostro_translations})
 MESSAGE(STATUS "Using these translations: ${cagliostro_translations} --> ${cagliostro_compiled_translations}")
 
