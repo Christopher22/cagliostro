@@ -22,7 +22,7 @@ Scale::Scale(model::Selection *selection, QWidget *parent) : QWidget(parent), se
 
   // Create the button group managing the selection
   auto *buttons = new QButtonGroup(this);
-  QObject::connect(buttons, QOverload<int>::of(&QButtonGroup::buttonClicked), this, [&](int id) {
+  QObject::connect(buttons, &QButtonGroup::idClicked, this, [&](int id) {
 	selection_->setAnswer(id);
   });
 
@@ -42,7 +42,7 @@ Scale::Scale(model::Selection *selection, QWidget *parent) : QWidget(parent), se
 	auto *label = new QLabel(values[i - start_index], this);
 	layout->addWidget(button, 0, i, Qt::AlignCenter);
 	layout->addWidget(label, 1, i, Qt::AlignCenter);
-	buttons->addButton(button, i);
+	buttons->addButton(button, i - start_index);
 	label->setBuddy(button);
   }
 

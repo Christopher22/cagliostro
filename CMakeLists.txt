@@ -8,7 +8,7 @@ You should have received a copy of the GNU Affero General Public License along w
 ]]
 
 cmake_minimum_required(VERSION 3.15)
-project(cagliostro VERSION 0.3.2.2 DESCRIPTION "Create cross-platform surveys without coding for empirical experiments" HOMEPAGE_URL "https://github.com/Christopher22/cagliostro")
+project(cagliostro VERSION 0.3.2.3 DESCRIPTION "Create cross-platform surveys without coding for empirical experiments" HOMEPAGE_URL "https://github.com/Christopher22/cagliostro")
 set(cagliostro_AUTHOR "Christopher Gundler")
 
 # Create a nice build dir without any cache files on CMake
