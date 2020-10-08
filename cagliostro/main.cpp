@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
   // Try to load translations on runtime
   QTranslator translator;
-  if (translator.load(QLocale(), QLatin1String("cagliostro"), QLatin1String("_"), QLatin1String("translations"))) {
+  if (translator.load(QLocale::system(), QLatin1String("cagliostro"), QLatin1String("_"), QLatin1String("translations"))) {
 	QCoreApplication::installTranslator(&translator);
   }
 
