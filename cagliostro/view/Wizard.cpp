@@ -20,8 +20,8 @@ namespace cagliostro::view {
 Wizard::Wizard(QWidget *parent) : util::Dialog(parent), wizard_(nullptr) {
   // Set the general config
   this->setWindowTitle(tr("Cagliostro"));
-  // The experiment should be shown before any other window
-  this->setWindowFlags(Qt::WindowStaysOnTopHint);
+  // The experiment should be shown before any other window and shall only show a close button
+  this->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
   // Limit window size to maximal size of the primary screen
   this->setMaximumSize(QApplication::screenAt(this->geometry().center())->geometry().size());
 

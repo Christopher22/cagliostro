@@ -75,9 +75,6 @@ void Dialog::nextPage() {
   if (current_index < pages_->count() - 1) {
 	auto *next_button = buttons_->button(NEXT_BUTTON);
 	next_button->setEnabled(false);
-	if (current_index + 2 == pages_->count()) {
-	  next_button->setText(tr("Finish"));
-	}
 
 	emit this->enterPage(current_index + 1);
 	pages_->setCurrentIndex(current_index + 1);
