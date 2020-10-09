@@ -41,7 +41,7 @@
     </message>
     <message>
         <source>Next</source>
-        <translation type="unfinished"></translation>
+        <translation>Weiter</translation>
     </message>
     <message>
         <source>Currently, only content &apos;video&apos; is supported.</source>
@@ -88,14 +88,14 @@
     <name>cagliostro::model::Page</name>
     <message>
         <source>Next</source>
-        <translation type="unfinished">Weiter</translation>
+        <translation>Weiter</translation>
     </message>
 </context>
 <context>
     <name>cagliostro::view::ConfigPage</name>
     <message>
         <source>Please select the survey</source>
-        <translation type="unfinished"></translation>
+        <translation>Bitte wählen Sie ein Experiment</translation>
     </message>
     <message>
         <source>Survey (*.cagliostro)</source>
@@ -103,7 +103,7 @@
     </message>
     <message>
         <source>Please specify the survey you recieved from your supervisors:</source>
-        <translation>Bitte geben sie die übermittelten Informationen ein:</translation>
+        <translation>Bitte geben Sie das übermittelte Experiment und Ihr Passwort ein.</translation>
     </message>
     <message>
         <source>Survey</source>
@@ -157,14 +157,14 @@
     </message>
     <message>
         <source>Exit</source>
-        <translation type="unfinished"></translation>
+        <translation>Beenden</translation>
     </message>
 </context>
 <context>
     <name>cagliostro::view::util::Dialog</name>
     <message>
         <source>Next</source>
-        <translation type="unfinished"></translation>
+        <translation>Weiter</translation>
     </message>
     <message>
         <source>Finish</source>
@@ -175,7 +175,7 @@
     <name>cagliostro::view::util::FileSelector</name>
     <message>
         <source>Please select a file</source>
-        <translation type="unfinished"></translation>
+        <translation>Bitte wählen Sie eine Datei</translation>
     </message>
 </context>
 </TS>
