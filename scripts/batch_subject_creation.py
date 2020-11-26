@@ -6,6 +6,7 @@ import xml.etree.ElementTree as Xml
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
+import re
 
 from shuffle_pages import shuffle_tree
 
@@ -67,6 +68,11 @@ class ConfigFile:
         subject_id = str(uuid.uuid4())[:4]
         root.attrib["participant"] = subject_id
         root.attrib["result"] = f"{subject_id}.result"
+
+        # Replace the placeholder '{participant}' by the real participant ID.
+        placeholder = re.compile('{participant}')
+        for element in root.iter():
+            element.text = placeholder.sub(repl=subject_id, string=element.text)
 
         output_file = Path(output_dir, f"{subject_id}.cagliostro")
         with output_file.open("wb+") as f:
